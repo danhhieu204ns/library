@@ -1,0 +1,319 @@
+/* Yên Library Color Theme */
+:root {
+  /* Primary Colors - Soft and peaceful tones inspired by "Yên" (tranquil) */
+  --primary-color: #6366F1; /* Soft indigo for trust and knowledge */
+  --primary-light: #E0E7FF; /* Very light indigo */
+  --primary-dark: #4338CA; /* Darker indigo */
+  --secondary-color: #FAE55C; /* Warm amber for energy and knowledge */
+  --secondary-light: #FEF3C7; /* Light amber */
+  --secondary-dark: #D97706; /* Darker amber */
+  
+  /* Accent Colors */
+  --accent-color: #10B981; /* Soft green for growth and nature */
+  --accent-light: #D1FAE5; /* Light green */
+  --accent-dark: #047857; /* Dark green */
+  
+  /* Text Colors */
+  --text-primary: #111827; /* Almost black for main text */
+  --text-secondary: #6B7280; /* Gray for secondary text */
+  --text-light: #9CA3AF; /* Light gray for subtle text */
+  --text-on-primary: #FFFFFF; /* White text on primary color */
+  --text-on-secondary: #111827; /* Dark text on secondary color */
+  
+  /* Background Colors */
+  --bg-primary: #FFFFFF; /* White background */
+  --bg-secondary: #F9FAFB; /* Very light gray background */
+  --bg-accent: #F3F4F6; /* Light gray accent background */
+  
+  /* Status Colors */
+  --success-color: #10B981; /* Green for success */
+  --warning-color: #F59E0B; /* Amber for warnings */
+  --error-color: #EF4444; /* Red for errors */
+  --info-color: #3B82F6; /* Blue for information */
+  
+  /* Shadow and Border */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; /* Light gray border */
+  --border-radius: 0.5rem; /* 8px */
+  --border-radius-lg: 0.75rem; /* 12px */
+}
+
+/* Alternative Warm Theme - Nature-inspired (uncomment to use) */
+/*
+:root {
+  --primary-color: #059669; 
+  --primary-light: #D1FAE5; 
+  --primary-dark: #065F46; 
+  --secondary-color: #D97706; 
+  --secondary-light: #FED7AA; 
+  --secondary-dark: #92400E; 
+  
+  --accent-color: #7C3AED; 
+  --accent-light: #EDE9FE; 
+  --accent-dark: #5B21B6; 
+  
+  --text-primary: #111827; 
+  --text-secondary: #6B7280; 
+  --text-light: #9CA3AF; 
+  --text-on-primary: #FFFFFF; 
+  --text-on-secondary: #FFFFFF; 
+  
+  --bg-primary: #FFFFFF; 
+  --bg-secondary: #F9FAFB; 
+  --bg-accent: #F0FDF4; 
+  
+  --success-color: #10B981; 
+  --warning-color: #F59E0B; 
+  --error-color: #EF4444; 
+  --info-color: #3B82F6; 
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; 
+  --border-radius: 0.5rem; 
+  --border-radius-lg: 0.75rem; 
+}
+*/
+
+/* Elegant Book Theme - Classic library colors (uncomment to use) */
+/*
+:root {
+  --primary-color: #92400E; 
+  --primary-light: #FEF3C7; 
+  --primary-dark: #451A03; 
+  --secondary-color: #065F46; 
+  --secondary-light: #D1FAE5; 
+  --secondary-dark: #022C22; 
+  
+  --accent-color: #B45309; 
+  --accent-light: #FEF3C7; 
+  --accent-dark: #451A03; 
+  
+  --text-primary: #1F2937; 
+  --text-secondary: #6B7280; 
+  --text-light: #9CA3AF; 
+  --text-on-primary: #FFFFFF; 
+  --text-on-secondary: #FFFFFF; 
+  
+  --bg-primary: #FFFBEB; 
+  --bg-secondary: #FEF3C7; 
+  --bg-accent: #F7F4F1; 
+  
+  --success-color: #10B981; 
+  --warning-color: #F59E0B; 
+  --error-color: #EF4444; 
+  --info-color: #3B82F6; 
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; 
+  --border-radius: 0.5rem; 
+  --border-radius-lg: 0.75rem; 
+}
+*/
+
+/* Peaceful Blue Theme - Reflecting tranquility of "Yên" (uncomment to use) */
+/*
+:root {
+  --primary-color: #3B82F6; 
+  --primary-light: #DBEAFE; 
+  --primary-dark: #1E40AF; 
+  --secondary-color: #F59E0B; 
+  --secondary-light: #FEF3C7; 
+  --secondary-dark: #D97706; 
+  
+  --accent-color: #10B981; 
+  --accent-light: #D1FAE5; 
+  --accent-dark: #047857; 
+  
+  --text-primary: #111827; 
+  --text-secondary: #6B7280; 
+  --text-light: #9CA3AF; 
+  --text-on-primary: #FFFFFF; 
+  --text-on-secondary: #111827; 
+  
+  --bg-primary: #FFFFFF; 
+  --bg-secondary: #F8FAFC; 
+  --bg-accent: #F1F5F9; 
+  
+  --success-color: #10B981; 
+  --warning-color: #F59E0B; 
+  --error-color: #EF4444; 
+  --info-color: #3B82F6; 
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; 
+  --border-radius: 0.5rem; 
+  --border-radius-lg: 0.75rem; 
+}
+*/
+
+/* Global Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  line-height: 1.6;
+}
+
+/* Utility Classes */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-light { color: var(--text-light); }
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-accent { background-color: var(--bg-accent); }
+
+.shadow-custom-sm { box-shadow: var(--shadow-sm); }
+.shadow-custom-md { box-shadow: var(--shadow-md); }
+.shadow-custom-lg { box-shadow: var(--shadow-lg); }
+
+.border-custom { border-color: var(--border-color); }
+.rounded-custom { border-radius: var(--border-radius); }
+.rounded-custom-lg { border-radius: var(--border-radius-lg); }
+
+/* Smooth transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus,
+a:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--text-on-secondary);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+/* Card Component */
+.card {
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Input Styles */
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Status Badges */
+.badge-success {
+  background-color: var(--success-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.badge-warning {
+  background-color: var(--warning-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.badge-error {
+  background-color: var(--error-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.badge-info {
+  background-color: var(--info-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}

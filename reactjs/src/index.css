@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/* Import Yên Library Theme */
+@import './styles/theme.css';
+
+/* Yên Library Color Theme - Soft Golden Yellow (dịu mắt hơn) */
+:root {
+  /* Primary Colors - Softer golden yellow, less harsh than #FFF000 */
+  --primary-color: #FAE55C; /* Warm golden yellow - dịu mắt hơn */
+  --primary-light: #FEF3C7; /* Very light golden cream */
+  --primary-dark: #D97706; /* Deeper golden */
+  --secondary-color: #059669; /* Soft green for balance and nature */
+  --secondary-light: #D1FAE5; /* Light green */
+  --secondary-dark: #047857; /* Dark green */
+  
+  /* Accent Colors */
+  --accent-color: #8B5CF6; /* Warm purple for wisdom and creativity */
+  --accent-light: #F3E8FF; /* Light purple */
+  --accent-dark: #5B21B6; /* Dark purple */
+  
+  /* Text Colors */
+  --text-primary: #111827; /* Almost black for main text */
+  --text-secondary: #6B7280; /* Gray for secondary text */
+  --text-light: #9CA3AF; /* Light gray for subtle text */
+  --text-on-primary: #1F2937; /* Dark text on primary yellow background */
+  --text-on-secondary: #FFFFFF; /* White text on secondary green color */
+  
+  /* Background Colors */
+  --bg-primary: #FEFDF8; /* Very light warm cream background - dịu mắt hơn */
+  --bg-secondary: #FEF7E0; /* Light warm cream background */
+  --bg-accent: #F9FAFB; /* Light gray accent background */
+  
+  /* Status Colors */
+  --success-color: #059669; /* Green for success */
+  --warning-color: #F59E0B; /* Amber for warnings */
+  --error-color: #EF4444; /* Red for errors */
+  --info-color: #3B82F6; /* Blue for information */
+  
+  /* Shadow and Border */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; /* Light gray border */
+  --border-radius: 0.5rem; /* 8px */
+  --border-radius-lg: 0.75rem; /* 12px */
+}
+
+/* Alternative Theme - Even softer yellow (uncomment to use if still too bright) */
+/*
+:root {
+  --primary-color: #EAB308; 
+  --primary-light: #FEF9C3; 
+  --primary-dark: #CA8A04; 
+  --secondary-color: #059669; 
+  --secondary-light: #D1FAE5; 
+  --secondary-dark: #047857; 
+  
+  --accent-color: #8B5CF6; 
+  --accent-light: #F3E8FF; 
+  --accent-dark: #5B21B6; 
+  
+  --text-primary: #111827; 
+  --text-secondary: #6B7280; 
+  --text-light: #9CA3AF; 
+  --text-on-primary: #1F2937; 
+  --text-on-secondary: #FFFFFF; 
+  
+  --bg-primary: #FEFCF0; 
+  --bg-secondary: #FEF9C3; 
+  --bg-accent: #F9FAFB; 
+  
+  --success-color: #059669; 
+  --warning-color: #F59E0B; 
+  --error-color: #EF4444; 
+  --info-color: #3B82F6; 
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; 
+  --border-radius: 0.5rem; 
+  --border-radius-lg: 0.75rem; 
+}
+*/
+
+/* Warm earth tone theme (uncomment to use) */
+/*
+:root {
+  --primary-color: #D97706; 
+  --primary-light: #FEF3C7; 
+  --primary-dark: #92400E; 
+  --secondary-color: #059669; 
+  --secondary-light: #D1FAE5; 
+  --secondary-dark: #047857; 
+  
+  --accent-color: #8B5CF6; 
+  --accent-light: #F3E8FF; 
+  --accent-dark: #5B21B6; 
+  
+  --text-primary: #111827; 
+  --text-secondary: #6B7280; 
+  --text-light: #9CA3AF; 
+  --text-on-primary: #FFFFFF; 
+  --text-on-secondary: #FFFFFF; 
+  
+  --bg-primary: #FFFBEB; 
+  --bg-secondary: #FEF3C7; 
+  --bg-accent: #F9FAFB; 
+  
+  --success-color: #059669; 
+  --warning-color: #F59E0B; 
+  --error-color: #EF4444; 
+  --info-color: #3B82F6; 
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; 
+  --border-radius: 0.5rem; 
+  --border-radius-lg: 0.75rem; 
+}
+*/
+
+/* Book-themed warm colors (uncomment to use) */
+/*
+:root {
+  --primary-color: #92400E; 
+  --primary-light: #FEF3C7; 
+  --primary-dark: #451A03; 
+  --secondary-color: #065F46; 
+  --secondary-light: #D1FAE5; 
+  --secondary-dark: #022C22; 
+  
+  --accent-color: #B45309; 
+  --accent-light: #FEF3C7; 
+  --accent-dark: #451A03; 
+  
+  --text-primary: #111827; 
+  --text-secondary: #6B7280; 
+  --text-light: #9CA3AF; 
+  --text-on-primary: #FFFFFF; 
+  --text-on-secondary: #FFFFFF; 
+  
+  --bg-primary: #FFFBEB; 
+  --bg-secondary: #FEF3C7; 
+  --bg-accent: #F3F4F6; 
+  
+  --success-color: #10B981; 
+  --warning-color: #F59E0B; 
+  --error-color: #EF4444; 
+  --info-color: #3B82F6; 
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-color: #E5E7EB; 
+  --border-radius: 0.5rem; 
+  --border-radius-lg: 0.75rem; 
+}
+*/
+
+/* Global Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  line-height: 1.6;
+}
+
+/* Utility Classes */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-light { color: var(--text-light); }
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-accent { background-color: var(--bg-accent); }
+
+.shadow-custom-sm { box-shadow: var(--shadow-sm); }
+.shadow-custom-md { box-shadow: var(--shadow-md); }
+.shadow-custom-lg { box-shadow: var(--shadow-lg); }
+
+.border-custom { border-color: var(--border-color); }
+.rounded-custom { border-radius: var(--border-radius); }
+.rounded-custom-lg { border-radius: var(--border-radius-lg); }
+
+/* Smooth transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus,
+a:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
