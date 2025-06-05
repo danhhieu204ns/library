@@ -1,0 +1,33 @@
+Các bài toán cần xử lý cho dự án Quản lý Thư viện Cộng đồng
+Dựa trên các chức năng và thiết kế cơ sở dữ liệu đã được xác định, dưới đây là một số bài toán và thách thức tiềm ẩn mà bạn cần xem xét và xử lý trong quá trình phát triển và vận hành hệ thống:
+1. Bài toán về Dữ liệu và Cơ sở dữ liệu
+Nhập liệu ban đầu: Với hơn 10.000 đầu sách, việc nhập liệu thông tin ban đầu vào hệ thống là một thách thức lớn, đòi hỏi thời gian và công sức. Cần có quy trình nhập liệu hiệu quả, có thể xem xét nhập liệu hàng loạt từ file (CSV, Excel) hoặc sử dụng tính năng tích hợp với CSDL ngoài (UC17) để giảm tải.
+Đồng bộ dữ liệu: Nếu sử dụng tính năng tích hợp CSDL ngoài (UC17), cần xử lý bài toán đồng bộ dữ liệu khi thông tin sách có thể thay đổi ở nguồn bên ngoài.
+Toàn vẹn dữ liệu: Đảm bảo tính toàn vẹn và nhất quán của dữ liệu, đặc biệt là giữa số lượng sách tổng (total_copies), số sách có sẵn (available_copies) trong bảng Books và trạng thái của từng bản sao trong bảng Copies. Các thao tác mượn, trả, mất, hỏng sách cần cập nhật chính xác các trường này.
+Hiệu năng truy vấn: Với lượng dữ liệu lớn (hơn 10.000 đầu sách và hàng nghìn lượt mượn/trả/đặt trước), các truy vấn tìm kiếm, thống kê, báo cáo cần được tối ưu hóa để đảm bảo tốc độ phản hồi nhanh. Việc đánh index phù hợp là rất quan trọng.
+Sao lưu và phục hồi: Xây dựng quy trình sao lưu dữ liệu định kỳ và kế hoạch phục hồi dữ liệu khi có sự cố.
+2. Bài toán về Logic nghiệp vụ phức tạp
+Quy trình mượn - trả - phạt: Xử lý chính xác các trạng thái của lượt mượn (BorrowingStatuses) và bản sao sách (CopyStatuses) trong các luồng mượn (UC21), trả (UC21), kiểm tra quá hạn (UC22), xử lý mất/hỏng (UC18).
+Tính toán phí phạt: Áp dụng đúng các quy tắc phạt từ bảng PenaltyRules để tính fine_amount khi sách quá hạn hoặc bị mất/hỏng.
+Quy trình đặt trước và hàng đợi: Quản lý hàng đợi đặt trước khi sách không có sẵn. Khi có bản sao được trả về, hệ thống cần tự động gán cho lượt đặt trước sớm nhất và thông báo cho người dùng (UC20, UC25). Xử lý trường hợp người dùng không đến nhận sách đặt trước đúng hạn.
+Quản lý lịch trực: Xử lý việc đăng ký lịch của CTV (UC30), duyệt/từ chối/chỉ định lịch của Admin (UC31), đảm bảo không có xung đột lịch.
+Phân quyền chi tiết: Mặc dù đã có bảng Roles và UserRoles, việc triển khai logic kiểm tra quyền cho từng chức năng (ví dụ: chỉ Admin mới được quản lý người dùng, chỉ CTV/Admin mới được mượn/trả sách) cần được thực hiện cẩn thận ở Backend.
+3. Bài toán về Giao diện người dùng (UI/UX)
+Thiết kế thân thiện: Xây dựng giao diện trực quan, dễ sử dụng cho cả độc giả (tìm kiếm, đặt sách, xem lịch sử) và cộng tác viên/admin (quản lý sách, mượn trả, lịch trực).
+Tìm kiếm hiệu quả: Thiết kế giao diện tìm kiếm sách mạnh mẽ với nhiều bộ lọc và tùy chọn sắp xếp (UC13). Hiển thị kết quả tìm kiếm rõ ràng, bao gồm thông tin trạng thái và vị trí sách (UC14).
+Hiển thị lịch trực và giờ mở cửa: Trình bày lịch trực của CTV và giờ mở cửa của thư viện một cách dễ hiểu trên giao diện (UC32, UC34).
+Thông báo cho người dùng: Thiết kế giao diện hiển thị các thông báo, nhắc nhở cho người dùng (UC50, UC51, UC53).
+Thiết kế Responsive và Accessibility: Đảm bảo website hoạt động tốt trên mọi thiết bị và hỗ trợ người dùng khuyết tật (UC70, UC71).
+4. Bài toán về Hệ thống và Kỹ thuật
+Bảo mật: Bảo vệ thông tin người dùng (đặc biệt là mật khẩu), ngăn chặn các cuộc tấn công phổ biến (SQL Injection, XSS). Phân quyền truy cập dữ liệu và chức năng đúng đắn.
+Xử lý lỗi: Xây dựng cơ chế xử lý lỗi mạnh mẽ ở cả Frontend và Backend, cung cấp thông báo lỗi rõ ràng cho người dùng và ghi log lỗi để debug.
+Hiệu năng hệ thống: Đảm bảo Backend có thể xử lý đồng thời nhiều yêu cầu từ người dùng mà không bị quá tải. Cần xem xét các kỹ thuật caching, tối ưu hóa code.
+Triển khai và vận hành: Lựa chọn môi trường triển khai (server, cloud), cấu hình môi trường, theo dõi hoạt động của hệ thống (monitoring), cập nhật và bảo trì.
+Tích hợp bên ngoài: Xử lý kết nối và giao tiếp với các dịch vụ bên ngoài (External Services) như API gửi email/SMS, API dữ liệu sách (UC17).
+5. Bài toán về Vận hành và Cộng đồng
+Quản lý CTV và lịch trực: Đảm bảo quy trình đăng ký và duyệt lịch trực diễn ra suôn sẻ, phù hợp với nhu cầu hoạt động của thư viện.
+Thúc đẩy sự tham gia của độc giả: Khuyến khích độc giả sử dụng các tính năng như đánh giá sách (UC15), đề xuất sách (UC16) để xây dựng cộng đồng.
+Hỗ trợ người dùng: Cần có kênh hỗ trợ để giải đáp thắc mắc và xử lý vấn đề cho độc giả và CTV khi sử dụng hệ thống.
+Quản lý sự kiện: Tổ chức và quản lý các sự kiện của thư viện thông qua hệ thống (UC65, UC72).
+Việc nhận diện sớm các bài toán này sẽ giúp bạn có kế hoạch chi tiết hơn cho từng giai đoạn phát triển, phân bổ nguồn lực hợp lý và chuẩn bị các giải pháp kỹ thuật cũng như quy trình vận hành cần thiết.
+

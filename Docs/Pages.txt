@@ -1,0 +1,124 @@
+Các trang giao diện người dùng (Frontend)
+Dựa trên danh sách chức năng và các luồng hoạt động, đây là đề xuất các trang giao diện cần thiết cho website Quản lý Thư viện Cộng đồng, được phân loại theo vai trò người dùng.
+1. Trang công khai (Public/Guest Pages)
+Các trang này có thể truy cập bởi bất kỳ ai, kể cả người chưa đăng nhập.
+Trang chủ (Homepage):
+Mục đích: Giới thiệu về thư viện, hiển thị sách nổi bật, sự kiện sắp tới, giờ mở cửa.
+Chức năng liên quan: UC32 (Hiển thị giờ mở cửa), UC72 (Xem sự kiện), UC41 (Top sách).
+Trang Tìm kiếm sách (Book Search Page):
+Mục đích: Cho phép người dùng tìm kiếm sách theo nhiều tiêu chí.
+Chức năng liên quan: UC13 (Tìm kiếm sách).
+Trang Chi tiết sách (Book Detail Page):
+Mục đích: Hiển thị thông tin chi tiết về một đầu sách, danh sách bản sao, trạng thái, vị trí và đánh giá.
+Chức năng liên quan: UC14 (Tra cứu sách có sẵn/đang mượn), UC15 (Xem đánh giá), UC13 (Liên kết từ tìm kiếm).
+Trang Đăng ký (Registration Page):
+Mục đích: Cho phép người dùng mới tạo tài khoản.
+Chức năng liên quan: UC01 (Đăng ký).
+Trang Đăng nhập (Login Page):
+Mục đích: Cho phép người dùng đã có tài khoản truy cập hệ thống.
+Chức năng liên quan: UC01 (Đăng nhập).
+Trang Giới thiệu/Thông tin về thư viện (About Us Page):
+Mục đích: Cung cấp thông tin về thư viện, lịch sử, sứ mệnh, liên hệ.
+Trang Sự kiện (Events Page):
+Mục đích: Hiển thị danh sách các sự kiện của thư viện.
+Chức năng liên quan: UC72 (Xem sự kiện).
+2. Trang dành cho Độc giả (Reader Pages)
+Các trang này yêu cầu người dùng phải đăng nhập với vai trò Độc giả.
+Dashboard Độc giả (Reader Dashboard):
+Mục đích: Tổng quan về tài khoản của độc giả, sách đang mượn, sách đã đặt trước, thông báo.
+Chức năng liên quan: UC02 (Thông tin cá nhân), UC24 (Lịch sử mượn trả), UC20 (Đặt trước), UC50, UC51, UC53 (Thông báo).
+Trang Thông tin cá nhân (Profile Page):
+Mục đích: Xem và cập nhật thông tin cá nhân.
+Chức năng liên quan: UC02 (Quản lý thông tin cá nhân).
+Trang Sách đang mượn (Currently Borrowed Books):
+Mục đích: Liệt kê các sách mà độc giả đang mượn, bao gồm hạn trả và phí phạt (nếu có).
+Chức năng liên quan: UC24 (Lịch sử mượn trả - lọc theo trạng thái đang mượn), UC22 (Kiểm tra hạn trả, tính phạt).
+Trang Lịch sử mượn trả (Borrowing History):
+Mục đích: Xem lại tất cả các lượt mượn trả đã hoàn thành.
+Chức năng liên quan: UC24 (Lịch sử mượn trả).
+Trang Sách đã đặt trước (Reserved Books):
+Mục đích: Liệt kê các sách mà độc giả đã đặt trước, bao gồm trạng thái và hạn giữ (nếu đã sẵn sàng).
+Chức năng liên quan: UC20 (Đặt trước), UC25 (Hủy đặt mượn).
+Trang Đề xuất sách mới (Suggest Book Page):
+Mục đích: Cho phép độc giả gửi đề xuất sách mới cho thư viện.
+Chức năng liên quan: UC16 (Đề xuất sách mới).
+Trang Thông báo của tôi (My Notifications):
+Mục đích: Xem danh sách các thông báo từ hệ thống.
+Chức năng liên quan: UC50, UC51, UC53 (Thông báo).
+Trang Đăng ký sự kiện (Event Registration - nếu có):
+Mục đích: Xem các sự kiện và đăng ký tham gia.
+Chức năng liên quan: UC72 (Lịch sự kiện và đăng ký).
+3. Trang dành cho Cộng tác viên (CTV Pages)
+Các trang này yêu cầu người dùng phải đăng nhập với vai trò Cộng tác viên. CTV cũng có thể truy cập các trang công khai và một số trang của Độc giả (ví dụ: xem thông tin sách, tìm kiếm).
+Dashboard Cộng tác viên (CTV Dashboard):
+Mục đích: Tổng quan về các tác vụ cần xử lý (yêu cầu mượn/trả, đặt trước chờ xử lý), lịch trực sắp tới, thông báo.
+Chức năng liên quan: UC63 (Dashboard tổng quan), UC30, UC34 (Lịch trực), UC20 (Đặt trước), UC21 (Mượn/Trả).
+Trang Xử lý mượn sách (Borrowing Process Page):
+Mục đích: Giao diện để CTV xác nhận cho độc giả mượn sách (quét mã vạch, nhập thông tin).
+Chức năng liên quan: UC21 (Xác nhận mượn), UC26 (Mượn hàng loạt).
+Trang Xử lý trả sách (Return Process Page):
+Mục đích: Giao diện để CTV xác nhận độc giả trả sách, kiểm tra quá hạn và tính phạt.
+Chức năng liên quan: UC21 (Xác nhận trả), UC22 (Kiểm tra hạn trả, tính phạt), UC26 (Trả hàng loạt).
+Trang Quản lý bản sao sách (Copy Management):
+Mục đích: Xem, tìm kiếm, cập nhật trạng thái và vị trí của từng bản sao sách.
+Chức năng liên quan: UC11 (Quản lý số lượng), UC12 (Gán vị trí), UC14 (Tra cứu bản sao), UC18 (Quản lý mất/hỏng).
+Trang Quản lý đặt trước (Reservation Management):
+Mục đích: Xem danh sách các lượt đặt trước, gán bản sao khi có sẵn, hủy đặt trước.
+Chức năng liên quan: UC20 (Đặt trước), UC25 (Hủy đặt mượn).
+Trang Đăng ký lịch trực (Schedule Registration):
+Mục đích: Cho phép CTV đăng ký lịch làm việc của mình.
+Chức năng liên quan: UC30 (Đăng ký lịch trực).
+Trang Xem lịch trực (View Schedule):
+Mục đích: Xem lịch trực đã đăng ký và được duyệt.
+Chức năng liên quan: UC30, UC34 (Lịch trực).
+Trang Quản lý đề xuất sách (Book Suggestion Management):
+Mục đích: Xem xét và xử lý các đề xuất sách từ độc giả.
+Chức năng liên quan: UC64 (Quản lý đề xuất sách).
+Trang Quản lý sự kiện (Event Management - nếu được phân quyền):
+Mục đích: Thêm, sửa, xóa sự kiện.
+Chức năng liên quan: UC65 (Quản lý sự kiện).
+4. Trang dành cho Admin (Admin Pages)
+Các trang này yêu cầu người dùng phải đăng nhập với vai trò Admin. Admin có quyền truy cập tất cả các trang của Độc giả và CTV, cộng thêm các trang quản trị hệ thống.
+Dashboard Admin (Admin Dashboard):
+Mục đích: Tổng quan toàn diện về hoạt động của thư viện (thống kê, logs, các tác vụ chờ xử lý quan trọng).
+Chức năng liên quan: UC63 (Dashboard tổng quan), UC40, UC41, UC42, UC43 (Thống kê/Báo cáo), ActivityLogs, AuditLogs.
+Trang Quản lý người dùng (User Management):
+Mục đích: Xem, tìm kiếm, thêm, sửa, xóa người dùng và quản lý vai trò/trạng thái của họ.
+Chức năng liên quan: UC04, UC60 (Quản lý người dùng & phân quyền).
+Trang Quản lý sách (Book Management):
+Mục đích: Xem, tìm kiếm, thêm, sửa, xóa thông tin đầu sách.
+Chức năng liên quan: UC10 (Thêm/sửa/xóa sách).
+Trang Quản lý bản sao sách (Copy Management): Tương tự trang của CTV nhưng có thể có quyền cao hơn (ví dụ: xóa bản sao ngay cả khi đang mượn - cần cân nhắc).
+Chức năng liên quan: UC11, UC12, UC14, UC18.
+Trang Quản lý mượn trả (Borrowing/Return Management): Tương tự trang của CTV.
+Chức năng liên quan: UC21, UC22, UC26.
+Trang Quản lý đặt trước (Reservation Management): Tương tự trang của CTV.
+Chức năng liên quan: UC20, UC25.
+Trang Quản lý lịch trực của CTV (CTV Schedule Management):
+Mục đích: Xem, duyệt, từ chối, chỉ định, sửa, xóa lịch trực của tất cả CTV.
+Chức năng liên quan: UC31 (Chỉ định/Điều chỉnh lịch), UC34 (Xem lịch).
+Trang Quản lý danh mục (Category Management):
+Mục đích: Quản lý các danh mục như Thể loại, Ngôn ngữ, Nhà xuất bản, Tags, Loại ca trực, Trạng thái, Tiêu chí đánh giá, Quy tắc phạt, Loại thông báo, Loại hành động...
+Chức năng liên quan: UC61 (Quản lý danh mục), UC62 (Quản lý cấu hình - một phần).
+Trang Quản lý cấu hình hệ thống (System Configuration):
+Mục đích: Xem và cập nhật các cấu hình chung của hệ thống.
+Chức năng liên quan: UC62 (Quản lý cấu hình hệ thống).
+Trang Quản lý đề xuất sách (Book Suggestion Management): Tương tự trang của CTV.
+Chức năng liên quan: UC64 (Quản lý đề xuất sách).
+Trang Quản lý sự kiện (Event Management): Tương tự trang của CTV.
+Chức năng liên quan: UC65 (Quản lý sự kiện).
+Trang Báo cáo & Thống kê (Reports & Statistics):
+Mục đích: Xem các báo cáo thống kê chi tiết và xuất báo cáo.
+Chức năng liên quan: UC40, UC41, UC42, UC43, UC44 (Thống kê & Báo cáo).
+Trang Nhật ký hoạt động (Activity Logs):
+Mục đích: Xem lịch sử hoạt động của người dùng và hệ thống.
+Chức năng liên quan: ActivityLogs (từ thiết kế CSDL).
+Trang Nhật ký kiểm toán (Audit Logs):
+Mục đích: Xem lịch sử thay đổi dữ liệu quan trọng.
+Chức năng liên quan: AuditLogs (từ thiết kế CSDL).
+Trang Quản lý quy tắc phạt (Penalty Rules Management):
+Mục đích: Xem, thêm, sửa, xóa các quy tắc tính phí phạt.
+Chức năng liên quan: UC61 (Quản lý danh mục - một phần).
+Danh sách này cung cấp một cái nhìn tổng thể về các trang cần thiết để triển khai tất cả các chức năng đã xác định. Đây sẽ là cơ sở để bạn bắt đầu thiết kế giao diện người dùng chi tiết (wireframes, mockups) cho từng trang.
+Bạn có muốn tinh chỉnh danh sách này không, hoặc muốn bắt đầu phác thảo giao diện cho một trang cụ thể nào trước?
+

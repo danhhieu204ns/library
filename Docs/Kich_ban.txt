@@ -1,0 +1,679 @@
+Luồng hoạt động chi tiết các chức năng hệ thống Quản lý Thư viện Cộng đồng
+Tài liệu này phác thảo các bước cơ bản trong luồng hoạt động của tất cả các chức năng đã xác định trong hệ thống, dựa trên cấu trúc cơ sở dữ liệu chi tiết.
+🔐 Quản lý người dùng & phân quyền
+1. Luồng hoạt động: Đăng ký người dùng (UC01)
+Mục đích: Cho phép người dùng mới tạo tài khoản để sử dụng các dịch vụ của thư viện.
+Các bước:
+Người dùng truy cập trang đăng ký (Frontend).
+Người dùng nhập thông tin: username, password, email, full_name, phone_number, address.
+Frontend gửi dữ liệu đến Backend (API).
+Backend nhận dữ liệu:
+Kiểm tra tính hợp lệ (username, email duy nhất).
+Hash mật khẩu.
+Tạo bản ghi mới trong bảng Users.
+Gán role_id mặc định ('DocGia' từ Roles).
+Gán status_id mặc định ('Active' từ UserStatuses).
+Ghi registration_date, created_at, updated_at.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='UserRegistration').
+Backend phản hồi: Thành công/Thất bại (lỗi).
+2. Luồng hoạt động: Đăng nhập người dùng (UC01)
+Mục đích: Cho phép người dùng đã có tài khoản truy cập vào hệ thống.
+Các bước:
+Người dùng truy cập trang đăng nhập (Frontend).
+Người dùng nhập username và password.
+Frontend gửi dữ liệu đến Backend (API).
+Backend nhận dữ liệu:
+Tìm Users theo username.
+So sánh password_hash.
+Kiểm tra status_id ('Active').
+Nếu thành công: Tạo session/token, lấy role_id (từ Users hoặc UserRoles).
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='UserLogin').
+Backend phản hồi: Thành công (trả về token/session, vai trò)/Thất bại (lỗi).
+3. Luồng hoạt động: Đăng xuất người dùng (UC01)
+Mục đích: Kết thúc phiên làm việc của người dùng.
+Các bước:
+Người dùng nhấn nút Đăng xuất (Frontend).
+Frontend gửi yêu cầu đăng xuất (kèm token/session) đến Backend (API).
+Backend nhận yêu cầu:
+Vô hiệu hóa session/token.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='UserLogout').
+Backend phản hồi: Thành công.
+Frontend chuyển hướng người dùng về trang chủ hoặc trang đăng nhập.
+4. Luồng hoạt động: Quản lý thông tin cá nhân (UC02)
+Mục đích: Cho phép người dùng xem và cập nhật thông tin cá nhân của mình.
+Các bước:
+Người dùng đăng nhập, truy cập trang thông tin cá nhân (Frontend).
+Frontend gửi yêu cầu lấy thông tin người dùng (kèm token/session) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng.
+Truy vấn bảng Users dựa trên user_id từ token/session.
+Backend phản hồi: Trả về thông tin người dùng.
+Người dùng xem thông tin, chỉnh sửa các trường cho phép (ví dụ: email, full_name, phone_number, address).
+Người dùng nhấn Lưu.
+Frontend gửi dữ liệu cập nhật đến Backend (API).
+Backend nhận dữ liệu:
+Xác thực người dùng.
+Kiểm tra tính hợp lệ của dữ liệu mới.
+Cập nhật bản ghi trong bảng Users.
+Ghi nhận updated_at.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='UpdateUserProfile').
+(Tùy chọn) Ghi vào AuditLogs nếu có thay đổi dữ liệu quan trọng.
+Backend phản hồi: Thành công/Thất bại.
+5. Luồng hoạt động: Phân quyền (UC03)
+Mục đích: Định nghĩa và gán vai trò cho người dùng. (Thường do Admin thực hiện thông qua UC04 hoặc UC60).
+Các bước: (Xem UC60)
+6. Luồng hoạt động: Quản lý danh sách người dùng (UC04 - chỉ Admin)
+Mục đích: Admin xem danh sách người dùng, tìm kiếm, xem thông tin chi tiết.
+Các bước:
+Admin đăng nhập, truy cập trang quản lý người dùng (Frontend).
+Frontend gửi yêu cầu lấy danh sách người dùng (kèm token/session) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực Admin.
+Truy vấn bảng Users, có thể JOIN với Roles, UserStatuses.
+Áp dụng phân trang, sắp xếp, bộ lọc (nếu có trong yêu cầu).
+Backend phản hồi: Trả về danh sách người dùng.
+Admin xem danh sách, có thể sử dụng chức năng tìm kiếm (lặp lại bước 2-4 với thêm điều kiện tìm kiếm).
+Admin chọn một người dùng để xem chi tiết (lặp lại bước 2-4 với thêm điều kiện lọc theo user_id).
+📚 Quản lý sách
+7. Luồng hoạt động: Thêm / sửa / xóa thông tin sách (UC10 - do CTV/Admin thực hiện)
+Mục đích: Quản lý thông tin các đầu sách trong thư viện.
+Các bước (Thêm sách):
+CTV/Admin truy cập chức năng thêm sách (Frontend).
+Nhập thông tin sách: title, author, publisher_id, publication_year, isbn, genre_id, language_id, description, cover_image_url.
+(Tùy chọn) Nhập số lượng bản sao ban đầu để hệ thống tự tạo bản ghi trong bảng Copies và cập nhật total_copies, available_copies trong Books.
+(Tùy chọn) Chọn các tag_id liên quan.
+Frontend gửi dữ liệu đến Backend (API).
+Backend nhận dữ liệu:
+Xác thực CTV/Admin.
+Kiểm tra tính hợp lệ.
+Tạo bản ghi mới trong bảng Books.
+Ghi nhận created_at, updated_at.
+(Nếu có số lượng bản sao ban đầu) Tạo các bản ghi tương ứng trong bảng Copies với status_id='Available' và location_id mặc định (hoặc yêu cầu nhập vị trí).
+(Nếu có tags) Tạo các bản ghi trong bảng BookTags.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='CreateBook').
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công (trả về book_id)/Thất bại.
+Các bước (Sửa sách):
+CTV/Admin tìm và chọn sách cần sửa.
+Frontend gửi yêu cầu lấy thông tin sách đến Backend.
+Backend trả về thông tin sách.
+CTV/Admin chỉnh sửa thông tin.
+Frontend gửi dữ liệu cập nhật đến Backend.
+Backend nhận dữ liệu:
+Xác thực CTV/Admin.
+Kiểm tra tính hợp lệ.
+Cập nhật bản ghi trong bảng Books.
+Ghi nhận updated_at.
+(Nếu có thay đổi tags) Cập nhật bảng BookTags.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='UpdateBook').
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+Các bước (Xóa sách):
+CTV/Admin tìm và chọn sách cần xóa.
+Frontend gửi yêu cầu xóa sách đến Backend.
+Backend nhận yêu cầu:
+Xác thực CTV/Admin.
+Kiểm tra ràng buộc (ví dụ: không cho xóa nếu còn bản sao đang được mượn hoặc đặt trước).
+Nếu hợp lệ: Xóa bản ghi trong bảng Books.
+Xóa các bản ghi liên quan trong Copies, BookTags, BookReviews, BookSuggestions (hoặc đánh dấu xóa mềm - soft delete).
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='DeleteBook').
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+8. Luồng hoạt động: Quản lý số lượng sách tồn / sách mượn (UC11)
+Mục đích: Xem tổng quan về số lượng bản sao của từng đầu sách, trạng thái tồn kho và đang mượn. (Chủ yếu là hiển thị thông tin từ các bảng Books, Copies, Borrowings).
+Các bước:
+CTV/Admin truy cập trang quản lý tồn kho sách (Frontend).
+Frontend gửi yêu cầu lấy dữ liệu tồn kho đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực CTV/Admin.
+Truy vấn bảng Books.
+Có thể JOIN hoặc sử dụng subquery để lấy thông tin chi tiết từ Copies (đếm số lượng theo trạng thái) và Borrowings (đếm số lượng đang mượn).
+Áp dụng phân trang, sắp xếp, bộ lọc.
+Backend phản hồi: Trả về danh sách các đầu sách với thông tin số lượng tổng, có sẵn, đang mượn, mất, hỏng.
+9. Luồng hoạt động: Gán vị trí sách vào kệ (UC12 - do CTV/Admin thực hiện)
+Mục đích: Gán vị trí vật lý cho từng bản sao sách.
+Các bước (Thêm vị trí):
+CTV/Admin truy cập chức năng quản lý vị trí (Frontend).
+Nhập thông tin vị trí mới: shelf_number, row_number, level_number, description.
+Frontend gửi dữ liệu đến Backend (API).
+Backend nhận dữ liệu:
+Xác thực CTV/Admin.
+Kiểm tra tính duy nhất của vị trí.
+Tạo bản ghi mới trong bảng BookLocations.
+Ghi nhận created_at, updated_at.
+(Tùy chọn) Ghi vào ActivityLogs.
+Backend phản hồi: Thành công/Thất bại.
+Các bước (Gán vị trí cho bản sao):
+CTV/Admin tìm và chọn bản sao sách (copy_id).
+CTV/Admin chọn hoặc nhập location_id.
+Frontend gửi yêu cầu cập nhật vị trí bản sao đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực CTV/Admin.
+Kiểm tra copy_id và location_id tồn tại.
+Cập nhật trường location_id trong bảng Copies.
+Ghi nhận updated_at trong Copies.
+(Tùy chọn) Ghi vào BookHistory (action_type_id='Relocated').
+(Tùy chọn) Ghi vào ActivityLogs.
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+10. Luồng hoạt động: Tìm kiếm sách (UC13)
+Mục đích: Cho phép người dùng tìm kiếm sách trong kho thư viện. (Đã phác thảo ở Canvas trước, lặp lại ở đây để đầy đủ).
+Các bước:
+Người dùng nhập từ khóa và/hoặc chọn bộ lọc (Frontend).
+Frontend gửi yêu cầu tìm kiếm (từ khóa, bộ lọc) đến Backend (API).
+Backend nhận yêu cầu:
+Truy vấn bảng Books, JOIN với Genres, Languages, BookLocations, Tags, BookTags.
+Áp dụng điều kiện WHERE/LIKE/Full-text search.
+(Tùy chọn) Ghi vào SearchLogs.
+Backend xử lý kết quả: Lấy thông tin sách, tính available_copies, (tùy chọn) tính điểm đánh giá.
+Backend phản hồi: Trả về danh sách sách tìm được.
+11. Luồng hoạt động: Tra cứu sách đang có sẵn hay đang được mượn (UC14)
+Mục đích: Cung cấp thông tin chi tiết về trạng thái của từng bản sao sách. (Gần giống UC13 nhưng tập trung vào trạng thái bản sao).
+Các bước:
+Người dùng tìm kiếm hoặc chọn một đầu sách (qua UC13 hoặc duyệt danh mục).
+Frontend hiển thị thông tin chi tiết đầu sách, bao gồm danh sách các bản sao.
+Frontend gửi yêu cầu lấy danh sách bản sao của sách (với book_id) đến Backend (API).
+Backend nhận yêu cầu:
+Truy vấn bảng Copies dựa trên book_id.
+JOIN với CopyStatuses để lấy tên trạng thái.
+JOIN với BookLocations để lấy vị trí.
+(Nếu trạng thái là 'Borrowed') JOIN với Borrowings để lấy due_date và thông tin người mượn (nếu được phép hiển thị).
+Backend phản hồi: Trả về danh sách các bản sao của sách đó, bao gồm copy_id, trạng thái, vị trí, và hạn trả (nếu đang mượn).
+12. Luồng hoạt động: Đánh giá và nhận xét sách (UC15 - do Độc giả thực hiện)
+Mục đích: Cho phép độc giả chia sẻ cảm nhận về sách.
+Các bước:
+Độc giả đăng nhập, xem chi tiết một đầu sách.
+Độc giả truy cập phần đánh giá/nhận xét.
+Độc giả nhập điểm đánh giá tổng thể (rating) và nội dung nhận xét (comment).
+(Nếu có đánh giá theo tiêu chí) Độc giả nhập điểm cho từng tiêu chí (score cho mỗi criteria_id từ ReviewCriteria).
+Frontend gửi dữ liệu đánh giá đến Backend (API).
+Backend nhận dữ liệu:
+Xác thực người dùng.
+Kiểm tra book_id tồn tại.
+(Tùy chọn) Kiểm tra xem người dùng đã mượn hoặc đọc sách này chưa (dựa trên Borrowings hoặc BookHistory).
+Tạo bản ghi mới trong bảng BookReviews.
+Ghi nhận book_id, user_id, rating, comment, review_date, created_at, updated_at.
+(Nếu có đánh giá theo tiêu chí) Tạo các bản ghi trong bảng ReviewScores.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='SubmitBookReview').
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống) Khi có đánh giá mới, cập nhật điểm đánh giá trung bình cho sách trong bảng Books (hoặc tính toán khi hiển thị).
+13. Luồng hoạt động: Danh sách mong muốn / Đề xuất sách (UC16 - do Độc giả thực hiện)
+Mục đích: Cho phép độc giả đề xuất sách mới cho thư viện.
+Các bước:
+Độc giả đăng nhập, truy cập chức năng đề xuất sách (Frontend).
+Độc giả nhập thông tin sách muốn đề xuất: suggested_title, suggested_author, suggested_publisher, suggestion_notes.
+Frontend gửi dữ liệu đến Backend (API).
+Backend nhận dữ liệu:
+Xác thực người dùng.
+Tạo bản ghi mới trong bảng BookSuggestions.
+Gán user_id, các thông tin đề xuất, suggestion_date.
+Gán status_id là 'Pending' (từ SuggestionStatuses).
+Ghi nhận created_at, updated_at.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='SuggestBook').
+Backend phản hồi: Thành công/Thất bại.
+14. Luồng hoạt động: Tích hợp với các cơ sở dữ liệu sách bên ngoài (UC17 - Hệ thống/Admin)
+Mục đích: Tự động lấy thông tin sách khi nhập liệu hoặc theo yêu cầu.
+Các bước (Khi thêm sách bằng ISBN):
+CTV/Admin nhập ISBN khi thêm sách (UC10).
+Frontend/Backend gửi yêu cầu đến External API (ví dụ: Open Library, Google Books) với ISBN.
+External API trả về thông tin sách (tiêu đề, tác giả, mô tả, ảnh bìa...).
+Backend nhận dữ liệu từ External API.
+Backend xử lý dữ liệu, điền vào các trường tương ứng trong bản ghi Books mới.
+Tiếp tục luồng Thêm sách (UC10).
+Các bước (Cập nhật thông tin sách):
+Admin/Hệ thống chọn sách cần cập nhật thông tin.
+Backend gửi yêu cầu đến External API với ISBN hoặc tiêu đề/tác giả.
+External API trả về thông tin.
+Backend so sánh và cập nhật các trường trong bảng Books.
+(Tùy chọn) Ghi vào AuditLogs.
+15. Luồng hoạt động: Quản lý sách bị mất / hỏng và quy trình xử lý bồi thường (UC18 - do CTV/Admin thực hiện)
+Mục đích: Ghi nhận trạng thái mất/hỏng của bản sao sách và xử lý bồi thường (nếu có).
+Các bước (Đánh dấu bản sao bị mất/hỏng):
+CTV/Admin xác định một bản sao sách bị mất hoặc hỏng.
+CTV/Admin tìm và chọn bản sao đó (copy_id).
+Frontend gửi yêu cầu cập nhật trạng thái bản sao đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực CTV/Admin.
+Cập nhật status_id của bản sao trong bảng Copies thành 'Lost' hoặc 'Damaged' (từ CopyStatuses).
+Cập nhật available_copies trong bảng Books (giảm đi 1).
+Ghi nhận updated_at.
+Ghi bản ghi vào BookHistory (action_type_id='MarkedLost'/'MarkedDamaged').
+(Tùy chọn) Ghi vào ActivityLogs.
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+Các bước (Xử lý bồi thường - nếu liên quan đến lượt mượn):
+CTV/Admin xác định một lượt mượn (borrow_id) mà sách bị mất/hỏng khi đang mượn.
+CTV/Admin truy cập chi tiết lượt mượn.
+Hệ thống/CTV tính toán phí bồi thường dựa trên giá trị sách (có thể lưu trong bảng Books hoặc Copies) và PenaltyRules (nếu có quy tắc bồi thường).
+CTV/Admin ghi nhận số tiền bồi thường vào trường fine_amount trong bảng Borrowings.
+Cập nhật status_id của lượt mượn thành 'Lost' hoặc 'Damaged' (từ BorrowingStatuses).
+Cập nhật return_date (có thể là ngày ghi nhận mất/hỏng).
+Ghi nhận handled_by_user_id.
+(Tùy chọn) Ghi vào ActivityLogs.
+(Tùy chọn) Ghi vào AuditLogs.
+(Tùy chọn) Tạo thông báo cho người dùng về phí bồi thường trong bảng Notifications.
+📅 Quản lý mượn - trả sách & đặt trước
+16. Luồng hoạt động: Bạn đọc có thể đặt mượn trước (UC20)
+Mục đích: Cho phép độc giả đặt trước một đầu sách nếu sách đó đang được mượn hết hoặc chưa có bản sao nào có sẵn. (Đã phác thảo ở Canvas trước, lặp lại ở đây để đầy đủ).
+Các bước:
+Độc giả xem chi tiết sách, available_copies là 0 (Frontend).
+Độc giả nhấn "Đặt mượn".
+Frontend gửi yêu cầu đặt mượn (với book_id, user_id) đến Backend (API).
+Backend nhận yêu cầu: Kiểm tra trùng lặp, kiểm tra hàng đợi.
+Nếu hợp lệ: Tạo bản ghi Reservations (book_id, user_id, reservation_date, expiry_date, status_id='Pending').
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống/CTV) Khi có bản sao có sẵn: Cập nhật Reservations.status_id='Ready', gán assigned_copy_id.
+(Hệ thống) Tạo Notifications (type_id='ReservationReady') và gửi thông báo.
+17. Luồng hoạt động: Cộng tác viên xác nhận mượn / trả sách (UC21 - do CTV/Admin thực hiện)
+Mục đích: Cộng tác viên/Admin xác nhận cho độc giả mượn hoặc trả sách. (Đã phác thảo ở Canvas trước, lặp lại ở đây để đầy đủ).
+Các bước (Mượn):
+CTV/Admin nhập thông tin người dùng và bản sao sách (user_id, copy_id).
+Frontend gửi yêu cầu mượn đến Backend (API).
+Backend nhận yêu cầu: Xác thực, kiểm tra trạng thái sách/người dùng, kiểm tra hạn mức.
+Nếu hợp lệ: Tạo bản ghi Borrowings (copy_id, user_id, borrow_date, due_date, status_id='Borrowed', handled_by_user_id). Cập nhật Copies.status_id='Borrowed', Books.available_copies giảm. Cập nhật Reservations nếu từ đặt trước. Ghi BookHistory, ActivityLogs.
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống) Tạo Notifications (xác nhận mượn).
+Các bước (Trả):
+CTV/Admin nhập thông tin bản sao sách (copy_id).
+Frontend gửi yêu cầu trả sách đến Backend (API).
+Backend nhận yêu cầu: Tìm bản sao, tìm lượt mượn đang 'Borrowed'.
+Nếu tìm thấy: Kiểm tra quá hạn, tính phạt (fine_amount). Cập nhật Borrowings (return_date, status_id='Returned', fine_amount, handled_by_user_id). Cập nhật Copies.status_id='Available', Books.available_copies tăng. Ghi BookHistory, ActivityLogs.
+Backend phản hồi: Thành công (bao gồm phí phạt)/Thất bại.
+(Hệ thống) Tạo Notifications (xác nhận trả).
+18. Luồng hoạt động: Kiểm tra hạn trả, tính phạt nếu có (UC22 - Hệ thống tự động)
+Mục đích: Hệ thống tự động kiểm tra các lượt mượn quá hạn và tính phí phạt.
+Các bước:
+(Hệ thống tự động - chạy định kỳ hàng ngày) Backend thực hiện một tác vụ theo lịch trình (scheduled task).
+Truy vấn bảng Borrowings để tìm các bản ghi có status_id là 'Borrowed' và due_date nhỏ hơn thời điểm hiện tại.
+Đối với mỗi lượt mượn quá hạn:
+Tính số ngày quá hạn.
+Tính phí phạt dựa trên số ngày quá hạn và PenaltyRules áp dụng cho 'Borrowings'.
+Cập nhật fine_amount trong bảng Borrowings.
+Cập nhật status_id thành 'Overdue' (từ BorrowingStatuses) nếu chưa ở trạng thái này.
+Ghi nhận updated_at.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='MarkedOverdue').
+(Tùy chọn) Tạo bản ghi mới trong bảng Notifications với type_id là 'BorrowDueReminder' hoặc 'BorrowOverdue' cho người dùng liên quan.
+(Hệ thống tự động) Gửi các thông báo quá hạn đã tạo trong bảng Notifications.
+19. Luồng hoạt động: Gửi thông báo xác nhận khi đặt mượn thành công (UC23)
+Mục đích: Thông báo cho độc giả khi lượt đặt trước của họ đã sẵn sàng để nhận. (Đã bao gồm trong luồng UC20).
+Các bước: (Xem bước 7 & 8 trong luồng UC20)
+20. Luồng hoạt động: Lịch sử mượn trả theo người dùng hoặc theo sách (UC24)
+Mục đích: Cho phép người dùng (độc giả xem lịch sử của mình) hoặc CTV/Admin (xem lịch sử của người khác/sách) tra cứu các lượt mượn trả đã hoàn thành.
+Các bước:
+Người dùng/CTV/Admin truy cập trang lịch sử mượn trả.
+(Nếu xem theo người dùng) Chọn hoặc nhập thông tin người dùng.
+(Nếu xem theo sách) Chọn hoặc nhập thông tin sách.
+Frontend gửi yêu cầu lấy lịch sử mượn trả (kèm user_id hoặc book_id/copy_id, và token/session) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng/CTV/Admin (kiểm tra quyền xem lịch sử của người khác).
+Truy vấn bảng Borrowings.
+Áp dụng điều kiện WHERE theo user_id hoặc copy_id (JOIN với Copies và Books nếu cần lọc theo book_id).
+JOIN với BorrowingStatuses, Copies, Books, Users (để lấy tên người xử lý).
+Áp dụng phân trang, sắp xếp (thường theo ngày mượn/trả).
+Backend phản hồi: Trả về danh sách các lượt mượn trả phù hợp.
+21. Luồng hoạt động: Hủy đặt mượn nếu quá hạn giữ (UC25 - Hệ thống tự động)
+Mục đích: Hệ thống tự động hủy các lượt đặt trước mà người dùng không đến nhận sách đúng hạn.
+Các bước:
+(Hệ thống tự động - chạy định kỳ hàng ngày) Backend thực hiện một tác vụ theo lịch trình.
+Truy vấn bảng Reservations để tìm các bản ghi có status_id là 'Ready' và expiry_date nhỏ hơn thời điểm hiện tại.
+Đối với mỗi lượt đặt trước đã quá hạn giữ:
+Cập nhật status_id thành 'Cancelled' (từ ReservationStatuses).
+Ghi nhận updated_at.
+(Nếu có assigned_copy_id) Cập nhật status_id của bản sao sách trong bảng Copies trở lại thành 'Available'.
+Cập nhật available_copies trong bảng Books (tăng lên 1).
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='ReservationExpired').
+(Tùy chọn) Tạo bản ghi mới trong bảng Notifications với type_id là 'ReservationCancelled' cho người dùng liên quan.
+(Hệ thống tự động) Gửi các thông báo hủy đặt trước đã tạo trong bảng Notifications.
+22. Luồng hoạt động: Thao tác mượn/trả sách hàng loạt (UC26 - do CTV/Admin thực hiện)
+Mục đích: Cho phép CTV/Admin xử lý nhiều bản sao sách cùng lúc (ví dụ: mượn nhiều sách cho một người, trả nhiều sách).
+Các bước (Mượn hàng loạt):
+CTV/Admin truy cập chức năng mượn hàng loạt.
+Nhập thông tin người dùng (user_id).
+Quét hoặc nhập danh sách barcode của các bản sao sách.
+Frontend gửi yêu cầu mượn hàng loạt (với user_id và danh sách copy_id) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực CTV/Admin.
+Xác thực người dùng.
+Lặp qua từng copy_id trong danh sách:
+Thực hiện các kiểm tra và cập nhật tương tự luồng Mượn sách (UC21) cho từng bản sao.
+Nếu có lỗi với một bản sao, ghi nhận lỗi nhưng có thể tiếp tục xử lý các bản sao khác.
+Tổng hợp kết quả xử lý (thành công/thất bại cho từng bản sao).
+Ghi các bản ghi Borrowings, Copies, Books, BookHistory, ActivityLogs tương ứng.
+Backend phản hồi: Trả về kết quả xử lý cho từng bản sao trong danh sách.
+Các bước (Trả hàng loạt):
+CTV/Admin truy cập chức năng trả hàng loạt.
+Quét hoặc nhập danh sách barcode của các bản sao sách.
+Frontend gửi yêu cầu trả hàng loạt (với danh sách copy_id) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực CTV/Admin.
+Lặp qua từng copy_id trong danh sách:
+Thực hiện các kiểm tra và cập nhật tương tự luồng Trả sách (UC21) cho từng bản sao.
+Nếu có lỗi với một bản sao (ví dụ: không tìm thấy lượt mượn đang 'Borrowed'), ghi nhận lỗi nhưng có thể tiếp tục xử lý các bản sao khác.
+Tổng hợp kết quả xử lý và tổng số tiền phạt (nếu có).
+Ghi các bản ghi Borrowings, Copies, Books, BookHistory, ActivityLogs tương ứng.
+Backend phản hồi: Trả về kết quả xử lý cho từng bản sao và tổng số tiền phạt.
+🧑‍🤝‍🧑 Quản lý cộng tác viên & lịch trực
+23. Luồng hoạt động: Cộng tác viên đăng ký lịch trực (UC30)
+Mục đích: Cộng tác viên đề xuất lịch làm việc của mình. (Đã phác thảo ở Canvas trước, lặp lại ở đây để đầy đủ).
+Các bước:
+CTV đăng nhập, truy cập trang quản lý lịch trực (Frontend).
+Chọn ngày (shift_date) và loại ca (shift_type_id).
+Frontend gửi yêu cầu đăng ký đến Backend (API).
+Backend nhận yêu cầu: Kiểm tra trùng lặp, tính hợp lệ.
+Nếu hợp lệ: Tạo bản ghi Schedules (user_id, shift_date, shift_type_id, status_id='Pending').
+Backend phản hồi: Thành công/Thất bại.
+24. Luồng hoạt động: Admin chỉ định hoặc điều chỉnh lịch trực (UC31 - do Admin thực hiện)
+Mục đích: Admin xem xét và phê duyệt/từ chối lịch CTV đăng ký hoặc tự tạo/sửa lịch cho CTV. (Đã phác thảo ở Canvas trước, lặp lại ở đây để đầy đủ).
+Các bước (Duyệt/Từ chối):
+Admin truy cập trang quản lý lịch trực CTV (Frontend).
+Xem danh sách lịch 'Pending' trong Schedules.
+Chọn lịch, quyết định Duyệt/Từ chối.
+Frontend gửi yêu cầu cập nhật trạng thái đến Backend (API).
+Backend nhận yêu cầu: Xác thực Admin, cập nhật Schedules.status_id, gán approved_by_user_id. Ghi ActivityLogs, ActionsHandled.
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống) Tạo Notifications (lịch được duyệt/từ chối).
+Các bước (Chỉ định/Sửa):
+Admin truy cập chức năng chỉ định/sửa lịch (Frontend).
+Chọn CTV, ngày, loại ca. (Nếu sửa: chọn lịch trực hiện có).
+Frontend gửi dữ liệu đến Backend (API).
+Backend nhận dữ liệu: Xác thực Admin, kiểm tra tính hợp lệ.
+Nếu hợp lệ: Tạo bản ghi Schedules mới (với status_id='Approved') hoặc cập nhật bản ghi Schedules hiện có. Ghi nhận created_at/updated_at. Ghi ActivityLogs, AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống) Tạo Notifications (CTV được chỉ định/lịch bị sửa).
+25. Luồng hoạt động: Hiển thị thời gian mở cửa dựa trên lịch trực (UC32)
+Mục đích: Cho người dùng xem thời gian thư viện mở cửa dựa trên lịch trực đã được duyệt của CTV.
+Các bước:
+Người dùng truy cập trang thông tin thư viện hoặc widget hiển thị giờ mở cửa (Frontend).
+Frontend gửi yêu cầu lấy lịch trực đã duyệt cho một khoảng thời gian (ví dụ: tuần hiện tại) đến Backend (API).
+Backend nhận yêu cầu:
+Truy vấn bảng Schedules với status_id='Approved'.
+Lọc theo khoảng ngày yêu cầu.
+JOIN với ShiftTypes để lấy giờ bắt đầu/kết thúc của từng ca.
+Tổng hợp thông tin để xác định các khung giờ mở cửa trong khoảng thời gian đó.
+Backend phản hồi: Trả về dữ liệu về giờ mở cửa theo ngày/ca.
+Frontend hiển thị thông tin giờ mở cửa một cách thân thiện với người dùng.
+26. Luồng hoạt động: Gửi thông báo lịch trực qua email/chat (UC33)
+Mục đích: Thông báo cho CTV về lịch trực của họ. (Đã bao gồm trong luồng UC31).
+Các bước: (Xem bước 7 trong luồng Duyệt/Từ chối lịch trực UC31 và bước 7 trong luồng Chỉ định/Sửa lịch trực UC31)
+27. Luồng hoạt động: Lịch trực có thể hiển thị theo tuần / tháng (UC34)
+Mục đích: Cho phép CTV và Admin xem lịch trực dưới dạng lịch tuần/tháng. (Chủ yếu là hiển thị thông tin từ bảng Schedules và ShiftTypes).
+Các bước:
+CTV/Admin truy cập trang lịch trực.
+Chọn chế độ xem (Tuần/Tháng) và điều hướng giữa các tuần/tháng.
+Frontend gửi yêu cầu lấy dữ liệu lịch trực cho khoảng thời gian được chọn (kèm user_id nếu là CTV xem lịch của mình, hoặc bộ lọc CTV nếu là Admin) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền xem lịch.
+Truy vấn bảng Schedules.
+Áp dụng bộ lọc theo user_id (nếu có), khoảng ngày, và status_id (ví dụ: chỉ hiển thị lịch đã duyệt).
+JOIN với ShiftTypes và Users (để lấy tên CTV nếu là Admin xem).
+Backend phản hồi: Trả về danh sách các bản ghi lịch trực trong khoảng thời gian yêu cầu.
+Frontend hiển thị dữ liệu dưới dạng lịch tuần hoặc tháng.
+📊 Thống kê & báo cáo
+28. Luồng hoạt động: Thống kê số sách theo thể loại, số sách đang mượn, đặt trước (UC40)
+Mục đích: Cung cấp các số liệu tổng quan về kho sách và hoạt động mượn/đặt.
+Các bước:
+Admin/CTV truy cập trang thống kê/báo cáo (Frontend).
+Chọn loại thống kê (ví dụ: theo thể loại, số sách đang mượn).
+Frontend gửi yêu cầu lấy dữ liệu thống kê đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền xem thống kê.
+Truy vấn các bảng liên quan: Books, Genres, Copies, Borrowings, Reservations.
+Sử dụng các hàm tổng hợp (COUNT, GROUP BY) để tính toán số liệu:
+Số sách theo thể loại: GROUP BY genre_id trên bảng Books (hoặc Copies).
+Số sách đang mượn: Đếm bản ghi trong Borrowings với status_id='Borrowed'.
+Số sách đang đặt trước: Đếm bản ghi trong Reservations với status_id='Pending' hoặc 'Ready'.
+Backend phản hồi: Trả về dữ liệu thống kê dưới dạng số liệu thô hoặc cấu trúc dữ liệu phù hợp.
+Frontend hiển thị dữ liệu dưới dạng bảng, biểu đồ, hoặc chỉ số tổng hợp.
+29. Luồng hoạt động: Top sách được quan tâm/mượn nhiều (UC41)
+Mục đích: Xác định những đầu sách phổ biến nhất.
+Các bước:
+Admin/CTV truy cập trang thống kê/báo cáo.
+Chọn báo cáo Top sách.
+Frontend gửi yêu cầu lấy dữ liệu Top sách đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền.
+Truy vấn bảng Borrowings.
+GROUP BY copy_id hoặc book_id và đếm số lần xuất hiện (COUNT).
+Sắp xếp kết quả theo số lượng đếm giảm dần.
+JOIN với Copies và Books để lấy thông tin sách.
+Giới hạn số lượng kết quả (ví dụ: TOP 10).
+(Tùy chọn) Có thể kết hợp dữ liệu từ Reservations (số lượt đặt trước) hoặc BookReviews (số lượt xem/đánh giá) để xác định mức độ quan tâm.
+Backend phản hồi: Trả về danh sách các đầu sách phổ biến nhất.
+Frontend hiển thị danh sách này.
+30. Luồng hoạt động: Thống kê hoạt động mượn của bạn đọc (UC42)
+Mục đích: Xem tổng quan về hoạt động mượn của từng độc giả hoặc nhóm độc giả.
+Các bước:
+Admin/CTV truy cập trang thống kê/báo cáo.
+Chọn báo cáo hoạt động mượn độc giả.
+(Tùy chọn) Áp dụng bộ lọc theo người dùng, khoảng thời gian.
+Frontend gửi yêu cầu lấy dữ liệu thống kê đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền.
+Truy vấn bảng Borrowings.
+GROUP BY user_id.
+Sử dụng các hàm tổng hợp (COUNT, SUM) để tính: tổng số lượt mượn, số sách đang mượn, số sách quá hạn, tổng số tiền phạt.
+JOIN với Users để lấy thông tin độc giả.
+Áp dụng bộ lọc và sắp xếp.
+Backend phản hồi: Trả về danh sách độc giả kèm theo các số liệu thống kê hoạt động mượn của họ.
+Frontend hiển thị dữ liệu.
+31. Luồng hoạt động: Lịch sử trực của cộng tác viên (UC43)
+Mục đích: Xem lại lịch sử làm việc của các cộng tác viên.
+Các bước:
+Admin/CTV truy cập trang thống kê/báo cáo.
+Chọn báo cáo lịch sử trực CTV.
+(Tùy chọn) Áp dụng bộ lọc theo CTV, khoảng thời gian, trạng thái lịch trực.
+Frontend gửi yêu cầu lấy dữ liệu lịch sử trực đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền.
+Truy vấn bảng Schedules.
+Áp dụng bộ lọc.
+JOIN với Users (để lấy tên CTV và Admin duyệt) và ShiftTypes (để lấy giờ ca trực).
+Sắp xếp theo ngày.
+Backend phản hồi: Trả về danh sách các bản ghi lịch trực đã hoàn thành hoặc đã duyệt trong quá khứ.
+Frontend hiển thị dữ liệu.
+32. Luồng hoạt động: Xuất báo cáo thống kê ra các định dạng phổ biến (CSV, PDF) (UC44)
+Mục đích: Cho phép Admin/CTV tải xuống dữ liệu thống kê để sử dụng bên ngoài hệ thống.
+Các bước:
+Admin/CTV xem một báo cáo thống kê trên giao diện (Frontend).
+Nhấn nút "Xuất báo cáo" và chọn định dạng (CSV/PDF).
+Frontend gửi yêu cầu xuất báo cáo (bao gồm loại báo cáo, bộ lọc đang áp dụng, định dạng) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền.
+Thực hiện truy vấn dữ liệu tương tự như khi hiển thị báo cáo trên giao diện (xem các UC thống kê tương ứng).
+Sử dụng thư viện hoặc công cụ tạo tệp (CSV/PDF) trong ngôn ngữ lập trình Backend.
+Format dữ liệu vào tệp theo định dạng đã chọn.
+Lưu tệp tạm thời trên server hoặc luồng dữ liệu trực tiếp.
+Backend phản hồi: Trả về tệp dữ liệu hoặc một URL để tải tệp xuống.
+Frontend xử lý việc tải tệp về máy người dùng.
+🔔 Thông báo & nhắc nhở
+33. Luồng hoạt động: Gửi thông báo sắp đến hạn trả sách (UC50 - Hệ thống tự động)
+Mục đích: Nhắc nhở độc giả về sách sắp đến hạn trả.
+Các bước:
+(Hệ thống tự động - chạy định kỳ hàng ngày) Backend thực hiện một tác vụ theo lịch trình.
+Truy vấn bảng Borrowings để tìm các bản ghi có status_id là 'Borrowed' và due_date nằm trong khoảng thời gian cảnh báo (ví dụ: còn 1-3 ngày nữa là đến hạn - cấu hình trong SystemConfig).
+Đối với mỗi lượt mượn sắp đến hạn:
+Tạo bản ghi mới trong bảng Notifications với type_id là 'BorrowDueReminder' (từ NotificationTypes).
+Gán user_id của người mượn.
+Điền nội dung thông báo (sử dụng template từ NotificationTypes và thông tin sách/hạn trả).
+Gán status_id là 'Pending' (từ NotificationStatuses).
+Chọn delivery_method (Email/SMS dựa trên cấu hình người dùng hoặc hệ thống).
+Ghi nhận created_at.
+(Tùy chọn) Ghi vào ActivityLogs.
+(Hệ thống tự động) Backend xử lý hàng đợi thông báo trong bảng Notifications và gửi chúng đi bằng External Services (Email/SMS).
+Cập nhật status_id của thông báo thành 'Sent' hoặc 'Failed'.
+34. Luồng hoạt động: Gửi thông báo sách quá hạn (UC51 - Hệ thống tự động)
+Mục đích: Thông báo cho độc giả về sách đã quá hạn trả. (Đã bao gồm một phần trong luồng UC22).
+Các bước:
+(Hệ thống tự động - chạy định kỳ hàng ngày) Backend thực hiện một tác vụ theo lịch trình.
+Truy vấn bảng Borrowings để tìm các bản ghi có status_id là 'Overdue' (hoặc 'Borrowed' và quá hạn).
+Đối với mỗi lượt mượn quá hạn (chưa gửi thông báo quá hạn gần đây):
+Tạo bản ghi mới trong bảng Notifications với type_id là 'BorrowOverdue' (từ NotificationTypes).
+Gán user_id của người mượn.
+Điền nội dung thông báo (thông tin sách, số ngày quá hạn, phí phạt hiện tại).
+Gán status_id là 'Pending'.
+Chọn delivery_method.
+Ghi nhận created_at.
+(Tùy chọn) Ghi vào ActivityLogs.
+(Hệ thống tự động) Backend xử lý hàng đợi thông báo và gửi chúng đi.
+Cập nhật status_id của thông báo.
+35. Luồng hoạt động: Gửi xác nhận mượn / trả sách qua email (nếu cần) (UC52)
+Mục đích: Gửi email xác nhận sau khi mượn hoặc trả sách thành công. (Đã bao gồm trong luồng UC21).
+Các bước: (Xem bước 6 & 7 trong luồng Mượn sách UC21 và bước 6 & 7 trong luồng Trả sách UC21)
+36. Luồng hoạt động: Gửi thông báo sách đặt trước đã sẵn sàng (UC53)
+Mục đích: Thông báo cho độc giả khi sách họ đặt trước đã có bản sao sẵn sàng để nhận. (Đã bao gồm trong luồng UC20).
+Các bước: (Xem bước 7 & 8 trong luồng UC20)
+⚙️ Chức năng quản trị hệ thống (Admin only)
+37. Luồng hoạt động: Quản lý người dùng và phân quyền (UC60 - do Admin thực hiện)
+Mục đích: Admin xem, thêm, sửa, xóa người dùng và quản lý vai trò/trạng thái của họ. (Mở rộng từ UC04).
+Các bước (Xem/Tìm kiếm): Tương tự UC04.
+Các bước (Thêm người dùng): Tương tự luồng Đăng ký (UC01), nhưng do Admin nhập liệu và có thể gán vai trò/trạng thái ban đầu khác mặc định.
+Các bước (Sửa người dùng & phân quyền):
+Admin tìm và chọn người dùng cần sửa.
+Frontend gửi yêu cầu lấy thông tin người dùng đến Backend.
+Backend trả về thông tin (bao gồm cả vai trò từ Roles hoặc UserRoles, trạng thái từ UserStatuses).
+Admin chỉnh sửa thông tin (tên, email, sdt, địa chỉ) và/hoặc thay đổi vai trò (role_id trong Users hoặc cập nhật bảng UserRoles), trạng thái (status_id trong Users).
+Frontend gửi dữ liệu cập nhật đến Backend.
+Backend nhận dữ liệu:
+Xác thực Admin.
+Kiểm tra tính hợp lệ.
+Cập nhật bản ghi trong bảng Users.
+Cập nhật bảng UserRoles nếu quản lý đa vai trò.
+Ghi nhận updated_at.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='AdminUpdateUser').
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+Các bước (Xóa người dùng):
+Admin tìm và chọn người dùng cần xóa.
+Frontend gửi yêu cầu xóa đến Backend.
+Backend nhận yêu cầu:
+Xác thực Admin.
+Kiểm tra ràng buộc (ví dụ: không cho xóa nếu còn sách đang mượn hoặc đặt trước).
+Nếu hợp lệ: Xóa bản ghi trong bảng Users (hoặc đánh dấu xóa mềm).
+Xóa các bản ghi liên quan trong UserRoles, Borrowings, Reservations, BookReviews, BookSuggestions, Schedules, ActivityLogs, AuditLogs, Notifications, SearchLogs (hoặc đánh dấu xóa mềm).
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='AdminDeleteUser').
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+38. Luồng hoạt động: Quản lý danh mục (thể loại sách, nhà xuất bản, ngôn ngữ,...) (UC61 - do Admin thực hiện)
+Mục đích: Admin quản lý các danh mục cố định trong hệ thống.
+Các bước (Xem/Thêm/Sửa/Xóa): Áp dụng luồng CRUD (Create, Read, Update, Delete) cơ bản cho các bảng danh mục như Genres, Languages, Publishers, Tags, ShiftTypes, ReviewCriteria, PenaltyRules, UserStatuses, CopyStatuses, BorrowingStatuses, ReservationStatuses, ScheduleStatuses, SuggestionStatuses, NotificationTypes, NotificationStatuses, ActionTypes.
+Admin truy cập trang quản lý danh mục (Frontend), chọn loại danh mục.
+Frontend gửi yêu cầu lấy danh sách danh mục đến Backend (API).
+Backend trả về danh sách.
+Admin thực hiện Thêm/Sửa/Xóa một mục trong danh sách.
+Frontend gửi yêu cầu tương ứng đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực Admin.
+Kiểm tra tính hợp lệ và ràng buộc (ví dụ: không xóa thể loại nếu còn sách thuộc thể loại đó).
+Thực hiện thao tác INSERT/UPDATE/DELETE trên bảng danh mục tương ứng.
+Ghi nhận created_at/updated_at.
+(Tùy chọn) Ghi vào ActivityLogs.
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+39. Luồng hoạt động: Quản lý cấu hình hệ thống (UC62 - do Admin thực hiện)
+Mục đích: Admin thay đổi các tham số cấu hình chung của hệ thống.
+Các bước:
+Admin truy cập trang cấu hình hệ thống (Frontend).
+Frontend gửi yêu cầu lấy tất cả cấu hình từ bảng SystemConfig đến Backend (API).
+Backend trả về danh sách các cặp config_key - config_value.
+Admin xem và chỉnh sửa các giá trị cấu hình.
+Frontend gửi dữ liệu cập nhật đến Backend (API).
+Backend nhận dữ liệu:
+Xác thực Admin.
+Kiểm tra tính hợp lệ của giá trị mới.
+Cập nhật các bản ghi trong bảng SystemConfig.
+Ghi nhận updated_at.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='UpdateSystemConfig').
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+40. Luồng hoạt động: Dashboard quản lý tổng quan (UC63)
+Mục đích: Cung cấp cho Admin/CTV một cái nhìn tổng quan về trạng thái và hoạt động chính của thư viện. (Chủ yếu là hiển thị thông tin tổng hợp).
+Các bước:
+Admin/CTV đăng nhập và truy cập trang Dashboard (Frontend).
+Frontend gửi các yêu cầu lấy dữ liệu tổng hợp đến Backend (nhiều API calls).
+Backend nhận các yêu cầu:
+Xác thực người dùng và quyền xem Dashboard.
+Truy vấn các bảng khác nhau (Borrowings, Reservations, Schedules, BookSuggestions, Notifications, ActivityLogs, Books, Copies, Users).
+Thực hiện các truy vấn tổng hợp (COUNT, SUM, lọc theo trạng thái/thời gian) để lấy các chỉ số như: số sách đang mượn, số lượt đặt trước chờ xử lý, lịch trực sắp tới, đề xuất sách mới, thông báo chưa đọc, số lượng người dùng mới, v.v.
+Backend phản hồi: Trả về các bộ dữ liệu nhỏ cho từng phần của Dashboard.
+Frontend hiển thị các chỉ số, danh sách tóm tắt, biểu đồ (nếu có) trên Dashboard.
+41. Luồng hoạt động: Quản lý các yêu cầu đề xuất sách mới (UC64 - do Admin/CTV thực hiện)
+Mục đích: Admin/CTV xem xét, xử lý (duyệt, từ chối, đánh dấu đã thêm) các đề xuất sách từ độc giả.
+Các bước:
+Admin/CTV truy cập trang quản lý đề xuất sách (Frontend).
+Frontend gửi yêu cầu lấy danh sách đề xuất sách đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền.
+Truy vấn bảng BookSuggestions, JOIN với Users để lấy thông tin người đề xuất.
+Áp dụng bộ lọc theo trạng thái (status_id từ SuggestionStatuses).
+Áp dụng phân trang, sắp xếp.
+Backend phản hồi: Trả về danh sách các đề xuất sách.
+Admin/CTV xem danh sách, chọn một đề xuất để xem chi tiết.
+Admin/CTV quyết định xử lý đề xuất (Duyệt/Từ chối/Đánh dấu đã thêm).
+Frontend gửi yêu cầu cập nhật trạng thái đề xuất (với suggestion_id, trạng thái mới, và user_id người xử lý) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền.
+Cập nhật status_id trong bảng BookSuggestions.
+Gán handled_by_user_id.
+Ghi nhận updated_at.
+(Nếu đánh dấu 'Added') Có thể chuyển thông tin sang luồng Thêm sách (UC10) để tạo bản ghi Books mới.
+(Tùy chọn) Ghi vào ActivityLogs (action_type_id='HandleBookSuggestion').
+(Tùy chọn) Ghi vào ActionsHandled.
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống) Tạo Notifications thông báo cho người đề xuất về kết quả xử lý.
+42. Luồng hoạt động: Quản lý các sự kiện của thư viện (UC65 - do Admin/CTV thực hiện)
+Mục đích: Admin/CTV thêm, sửa, xóa thông tin về các sự kiện của thư viện.
+Các bước (Xem/Thêm/Sửa/Xóa): Áp dụng luồng CRUD cơ bản cho bảng Events.
+Admin/CTV truy cập trang quản lý sự kiện (Frontend).
+Frontend gửi yêu cầu lấy danh sách sự kiện đến Backend (API).
+Backend trả về danh sách.
+Admin/CTV thực hiện Thêm/Sửa/Xóa một sự kiện.
+Frontend gửi yêu cầu tương ứng đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng và quyền.
+Kiểm tra tính hợp lệ.
+Thực hiện thao tác INSERT/UPDATE/DELETE trên bảng Events.
+Ghi nhận created_at/updated_at.
+(Tùy chọn) Ghi vào ActivityLogs.
+(Tùy chọn) Ghi vào AuditLogs.
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống/Tùy chọn) Tạo thông báo về sự kiện mới/sửa/hủy cho người dùng quan tâm.
+✨ Chức năng nâng cao & trải nghiệm người dùng
+43. Luồng hoạt động: Thiết kế Responsive (UC70) & Tính năng hỗ trợ tiếp cận (UC71)
+Mục đích: Đảm bảo giao diện hiển thị tốt trên mọi thiết bị và dễ sử dụng cho người khuyết tật.
+Luồng hoạt động: Đây là các yêu cầu về mặt thiết kế và triển khai giao diện (Frontend) và không có luồng hoạt động Backend cụ thể. Việc này cần được xem xét trong suốt quá trình phát triển Frontend.
+44. Luồng hoạt động: Lịch sự kiện của thư viện và đăng ký tham gia trực tuyến (UC72)
+Mục đích: Cho phép người dùng xem các sự kiện và đăng ký tham gia.
+Các bước (Xem sự kiện):
+Người dùng truy cập trang sự kiện (Frontend).
+Frontend gửi yêu cầu lấy danh sách sự kiện đến Backend (API).
+Backend nhận yêu cầu:
+Truy vấn bảng Events.
+Lọc các sự kiện trong tương lai hoặc đang diễn ra.
+Sắp xếp theo ngày.
+Backend phản hồi: Trả về danh sách các sự kiện.
+Frontend hiển thị danh sách sự kiện, có thể xem chi tiết từng sự kiện.
+Các bước (Đăng ký tham gia - Tùy chọn mở rộng):
+Người dùng đăng nhập, xem chi tiết một sự kiện.
+Nếu sự kiện cho phép đăng ký, nút "Đăng ký tham gia" hiển thị.
+Người dùng nhấn nút Đăng ký.
+Frontend gửi yêu cầu đăng ký (với user_id, event_id) đến Backend (API).
+Backend nhận yêu cầu:
+Xác thực người dùng.
+Kiểm tra event_id tồn tại và sự kiện còn mở đăng ký.
+(Tùy chọn) Kiểm tra xem người dùng đã đăng ký chưa.
+(Nếu hợp lệ) Tạo bản ghi trong bảng EventRegistrations (cần thêm bảng này: registration_id, event_id, user_id, registration_date).
+(Tùy chọn) Ghi vào ActivityLogs.
+Backend phản hồi: Thành công/Thất bại.
+(Hệ thống/Tùy chọn) Gửi xác nhận đăng ký qua email.
+Các luồng hoạt động hệ thống tự động khác
+Ngoài các luồng đã đề cập, hệ thống có thể có các luồng tự động chạy định kỳ khác:
+Kiểm tra và gửi thông báo quá hạn/sắp hạn: (Đã bao gồm trong UC22, UC50, UC51).
+Hủy đặt trước quá hạn giữ: (Đã bao gồm trong UC25).
+Tổng hợp dữ liệu thống kê định kỳ: Chạy các truy vấn phức tạp vào ban đêm để tạo ra các báo cáo tổng hợp sẵn, giúp truy vấn nhanh hơn khi Admin/CTV xem báo cáo.
+Sao lưu cơ sở dữ liệu: Quy trình tự động sao lưu dữ liệu định kỳ.
+Kiểm tra tính toàn vẹn dữ liệu: Quy trình tự động kiểm tra các ràng buộc và tính nhất quán của dữ liệu.
+Tổng kết
+Tài liệu này đã phác thảo luồng hoạt động cho hầu hết các chức năng đã được xác định, từ các thao tác cơ bản của người dùng đến các chức năng quản trị phức tạp và các quy trình hệ thống tự động.
+Việc hiểu rõ các luồng này là rất quan trọng để phát triển hệ thống một cách có cấu trúc. Mỗi bước trong luồng tương ứng với một hoặc nhiều thao tác ở Frontend, Backend và Cơ sở dữ liệu.
+Bước tiếp theo, bạn có thể bắt đầu thiết kế giao diện người dùng chi tiết (wireframes/mockups) cho từng trang dựa trên các luồng này, hoặc bắt đầu xây dựng các API ở Backend để hỗ trợ các luồng hoạt động.
+

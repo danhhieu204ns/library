@@ -1,0 +1,92 @@
+Phân tích Yêu cầu Phi chức năng cho Hệ thống Quản lý Thư viện Cộng đồng
+Yêu cầu phi chức năng (Non-functional Requirements - NFRs) mô tả cách hệ thống thực hiện một chức năng, thay vì chức năng đó là gì. Chúng liên quan đến các khía cạnh như hiệu năng, bảo mật, khả năng sử dụng, độ tin cậy, v.v. Đối với dự án thư viện, việc xác định rõ các NFRs giúp định hướng quá trình thiết kế và phát triển để xây dựng một hệ thống chất lượng cao.
+1. Hiệu năng (Performance)
+Hiệu năng đề cập đến khả năng phản hồi và xử lý khối lượng công việc của hệ thống dưới các điều kiện tải khác nhau.
+Tầm quan trọng: Người dùng (độc giả, CTV, Admin) mong đợi hệ thống phản hồi nhanh chóng khi tìm kiếm sách, mượn/trả sách, xem báo cáo, v.v. Hệ thống chậm chạp sẽ gây khó chịu và làm giảm hiệu quả công việc.
+Các khía cạnh cần quan tâm:
+Thời gian phản hồi (Response Time): Thời gian từ khi người dùng gửi yêu cầu đến khi nhận được phản hồi.
+Tìm kiếm sách (UC13): Cần rất nhanh, ngay cả với kho sách lớn (>10.000 đầu sách).
+Các thao tác CRUD cơ bản (UC10, UC60, UC61...): Cần nhanh.
+Các thao tác nghiệp vụ (UC21 mượn/trả, UC20 đặt trước): Cần nhanh và đáng tin cậy.
+Các báo cáo thống kê (UC40-UC43): Có thể chấp nhận thời gian xử lý lâu hơn một chút nếu dữ liệu lớn, nhưng giao diện cần hiển thị kết quả nhanh chóng hoặc cung cấp trạng thái xử lý.
+Thông lượng (Throughput): Số lượng yêu cầu mà hệ thống có thể xử lý trong một đơn vị thời gian (ví dụ: số lượt mượn/trả mỗi phút).
+Sử dụng tài nguyên (Resource Utilization): Hệ thống sử dụng CPU, RAM, dung lượng đĩa, băng thông mạng hiệu quả như thế nào.
+Hỗ trợ từ Stack (React, FastAPI, PostgreSQL):
+FastAPI: Nổi tiếng về hiệu năng cao nhờ bất đồng bộ (async/await) và Starlette.
+PostgreSQL: Cung cấp các công cụ tối ưu hóa truy vấn mạnh mẽ (indexing, query planning).
+React: Tối ưu hóa việc cập nhật giao diện nhờ Virtual DOM.
+Phương án xử lý ban đầu:
+Tối ưu hóa truy vấn CSDL bằng cách đánh index phù hợp (đã thực hiện trong script CSDL).
+Thiết kế API hiệu quả, chỉ trả về dữ liệu cần thiết.
+Sử dụng caching cho các dữ liệu ít thay đổi hoặc thường xuyên được truy cập.
+Áp dụng phân trang (pagination) cho các danh sách dữ liệu lớn (sách, người dùng, lịch sử mượn trả...).
+2. Khả năng mở rộng (Scalability)
+Khả năng mở rộng là khả năng của hệ thống xử lý khối lượng công việc tăng lên (số người dùng, số dữ liệu) mà vẫn duy trì hiệu năng.
+Tầm quan trọng: Dự án thư viện cộng đồng có thể phát triển, số lượng độc giả và sách tăng lên đáng kể theo thời gian. Hệ thống cần có khả năng mở rộng để đáp ứng sự tăng trưởng này.
+Các khía cạnh cần quan tâm:
+Mở rộng theo chiều ngang (Horizontal Scaling): Thêm nhiều server Backend hoặc instance database để phân tải.
+Mở rộng theo chiều dọc (Vertical Scaling): Tăng cấu hình (CPU, RAM) cho server hiện tại.
+Khả năng xử lý dữ liệu tăng trưởng: CSDL cần có khả năng lưu trữ và xử lý lượng dữ liệu ngày càng lớn.
+Hỗ trợ từ Stack:
+FastAPI/Node.js (nếu dùng): Có thể dễ dàng chạy nhiều instance Backend sau load balancer.
+PostgreSQL: Hỗ trợ replication (nhân bản dữ liệu) và sharding (chia nhỏ dữ liệu) cho các kịch bản tải cao.
+React: Ứng dụng Frontend chạy trên trình duyệt client, không ảnh hưởng trực tiếp đến tải server (trừ các yêu cầu API).
+Phương án xử lý ban đầu:
+Thiết kế kiến trúc microservices (tùy chọn, cho giai đoạn sau) để chia nhỏ ứng dụng thành các dịch vụ độc lập, dễ mở rộng riêng lẻ.
+Sử dụng connection pool cho CSDL để quản lý kết nối hiệu quả.
+Thiết kế CSDL có thể mở rộng (ví dụ: phân vùng bảng nếu cần).
+3. Bảo mật (Security)
+Bảo mật là khả năng bảo vệ hệ thống và dữ liệu khỏi các truy cập, sử dụng, tiết lộ, gián đoạn, sửa đổi hoặc phá hủy trái phép.
+Tầm quan trọng: Bảo vệ thông tin cá nhân của người dùng, ngăn chặn việc truy cập trái phép vào các chức năng quản trị, đảm bảo tính toàn vẹn của dữ liệu mượn trả, thống kê.
+Các khía cạnh cần quan tâm:
+Xác thực (Authentication): Xác minh danh tính người dùng (đăng nhập).
+Phân quyền (Authorization): Xác định người dùng được phép thực hiện hành động nào (dựa trên vai trò).
+Bảo vệ dữ liệu nhạy cảm: Hash mật khẩu, mã hóa dữ liệu quan trọng (nếu cần).
+Chống tấn công phổ biến: SQL Injection, Cross-Site Scripting (XSS), Cross-Site Request Forgery (CSRF).
+Ghi log bảo mật: Theo dõi các hoạt động đáng ngờ (AuditLogs, ActivityLogs).
+Hỗ trợ từ Stack:
+FastAPI: Hỗ trợ tích hợp các cơ chế xác thực (JWT, OAuth2) và quản lý quyền.
+PostgreSQL: Cung cấp các tính năng bảo mật ở cấp độ CSDL (quản lý người dùng CSDL, quyền truy cập bảng).
+React: Cần cẩn thận khi xử lý dữ liệu nhạy cảm ở Frontend, tránh hiển thị thông tin không cần thiết.
+Phương án xử lý ban đầu:
+Sử dụng HTTPS.
+Hash mật khẩu bằng thuật toán mạnh (ví dụ: bcrypt).
+Triển khai xác thực dựa trên JWT token.
+Kiểm tra quyền truy cập tại Backend cho mỗi API endpoint.
+Validate và sanitize tất cả dữ liệu đầu vào từ người dùng.
+Sử dụng các thư viện bảo mật có sẵn trong FastAPI.
+4. Độ tin cậy (Reliability)
+Độ tin cậy là khả năng của hệ thống hoạt động đúng và liên tục trong một khoảng thời gian nhất định dưới các điều kiện xác định.
+Tầm quan trọng: Hệ thống cần hoạt động ổn định để người dùng có thể mượn/trả sách, tra cứu thông tin bất cứ lúc nào thư viện mở cửa. Lỗi hệ thống có thể gây gián đoạn hoạt động của thư viện.
+Các khía cạnh cần quan tâm:
+Tỷ lệ lỗi (Failure Rate): Tần suất hệ thống gặp lỗi.
+Thời gian phục hồi (Recovery Time): Thời gian cần thiết để hệ thống hoạt động trở lại sau khi gặp sự cố.
+Khả năng chịu lỗi (Fault Tolerance): Khả năng hệ thống tiếp tục hoạt động (dù có thể bị suy giảm hiệu năng) khi một thành phần gặp lỗi.
+Hỗ trợ từ Stack:
+PostgreSQL: Rất đáng tin cậy, hỗ trợ transaction đảm bảo tính nhất quán dữ liệu ngay cả khi có lỗi xảy ra trong quá trình xử lý.
+FastAPI: Xử lý ngoại lệ (exception handling) tốt.
+Phương án xử lý ban đầu:
+Sử dụng transaction cho các thao tác CSDL quan trọng (mượn, trả, đặt trước).
+Triển khai cơ chế ghi log lỗi chi tiết (ActivityLogs, hệ thống logging).
+Xây dựng cơ chế xử lý ngoại lệ ở Backend và hiển thị thông báo lỗi thân thiện ở Frontend.
+Thiết lập quy trình sao lưu và phục hồi dữ liệu.
+Giám sát hệ thống để phát hiện sớm các dấu hiệu bất thường.
+5. Khả năng bảo trì (Maintainability)
+Khả năng bảo trì là mức độ dễ dàng để sửa đổi, hiểu và kiểm thử hệ thống khi có yêu cầu thay đổi, sửa lỗi hoặc nâng cấp.
+Tầm quan trọng: Hệ thống sẽ cần được cập nhật, sửa lỗi và bổ sung tính năng mới theo thời gian. Một hệ thống dễ bảo trì giúp tiết kiệm thời gian và chi phí phát triển trong tương lai.
+Các khía cạnh cần quan tâm:
+Khả năng hiểu (Understandability): Mã nguồn có dễ đọc, dễ hiểu không (nhờ cấu trúc code, đặt tên biến/hàm, comment)?
+Khả năng sửa đổi (Modifiability): Việc thay đổi một phần của hệ thống có ảnh hưởng ít nhất đến các phần khác không?
+Khả năng kiểm thử (Testability): Hệ thống có dễ dàng viết và chạy các bài kiểm thử không?
+Hỗ trợ từ Stack:
+React, FastAPI: Là các framework/thư viện có cấu trúc rõ ràng, tuân theo các nguyên tắc thiết kế tốt.
+TypeScript (nếu sử dụng): Tăng khả năng hiểu và tái cấu trúc code nhờ kiểu dữ liệu tĩnh.
+Cấu trúc dự án đã đề xuất: Phân tách các lớp và module giúp cô lập các phần của hệ thống.
+Phương án xử lý ban đầu:
+Tuân thủ cấu trúc dự án đã đề xuất.
+Viết code sạch, dễ đọc, có comment đầy đủ cho các phần phức tạp.
+Viết các bài kiểm thử (unit tests, integration tests) để đảm bảo chất lượng code và hỗ trợ việc sửa đổi sau này.
+Sử dụng các công cụ phân tích code tĩnh (static analysis) để kiểm tra chất lượng code.
+Quản lý dependencies (thư viện) một cách cẩn thận.
+Việc xem xét và giải quyết các yêu cầu phi chức năng này ngay từ giai đoạn thiết kế và trong suốt quá trình phát triển sẽ giúp bạn xây dựng một hệ thống quản lý thư viện không chỉ đáp ứng được các nhu cầu chức năng mà còn hoạt động ổn định, an toàn và có khả năng phát triển lâu dài.
+

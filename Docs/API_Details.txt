@@ -1,0 +1,1022 @@
+Đặc tả chi tiết API Backend
+Tài liệu này đặc tả chi tiết các API endpoint cho Backend sử dụng ExpressJS, bao gồm phương thức HTTP, đường dẫn, mô tả, cấu trúc dữ liệu yêu cầu (Request) và phản hồi (Response), cùng với yêu cầu xác thực và phân quyền.
+Quy ước chung:
+HTTP Methods: Sử dụng các phương thức chuẩn (GET, POST, PUT, DELETE).
+URLs: Theo cấu trúc RESTful, sử dụng danh từ số nhiều cho tài nguyên (ví dụ: /users, /books).
+Authentication: Yêu cầu token xác thực (JWT) trong header Authorization: Bearer <token>.
+Authorization: Chỉ rõ vai trò (Admin, CTV, DocGia) được phép truy cập endpoint.
+Request Body/Response Body: Sử dụng cấu trúc tương tự Pydantic models hoặc dictionary JSON với kiểu dữ liệu.
+Status Codes: Sử dụng mã trạng thái HTTP chuẩn (200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 422 Unprocessable Entity, 500 Internal Server Error).
+🔐 API liên quan đến Người dùng & Xác thực
+POST /users/register
+Mô tả: Đăng ký tài khoản người dùng mới.
+Yêu cầu xác thực: Không bắt buộc.
+Request Body:
+{
+  "username": "string",       // Tên đăng nhập (duy nhất)
+  "password": "string",       // Mật khẩu (cần hash ở backend)
+  "email": "string",          // Email (duy nhất, tùy chọn)
+  "full_name": "string",      // Họ và tên đầy đủ
+  "phone_number": "string",   // Số điện thoại (tùy chọn)
+  "address": "string"         // Địa chỉ (tùy chọn)
+}
+
+
+Response (201 Created):
+{
+  "user_id": 1,
+  "username": "string",
+  "email": "string",
+  "full_name": "string",
+  "phone_number": "string",
+  "address": "string",
+  "role_id": 3,              // Mặc định là DocGia
+  "status_id": 1,            // Mặc định là Active
+  "registration_date": "YYYY-MM-DD",
+  "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+}
+
+
+Response (400 Bad Request / 422 Unprocessable Entity): Lỗi validation hoặc username/email đã tồn tại.
+POST /users/login
+Mô tả: Đăng nhập người dùng.
+Yêu cầu xác thực: Không bắt buộc.
+Request Body:
+{
+  "username": "string",
+  "password": "string"
+}
+
+
+Response (200 OK):
+{
+  "access_token": "string",   // JWT token
+  "token_type": "bearer",
+  "user_id": 1,
+  "username": "string",
+  "full_name": "string",
+  "role_id": 3               // Vai trò chính của người dùng
+}
+
+
+Response (401 Unauthorized): Sai thông tin đăng nhập hoặc tài khoản không hoạt động.
+POST /users/logout
+Mô tả: Đăng xuất người dùng.
+Yêu cầu xác thực: Bắt buộc (bất kỳ vai trò nào).
+Request Body: Không có.
+Response (200 OK):
+{
+  "message": "Logout successful"
+}
+
+
+GET /users/me
+Mô tả: Lấy thông tin của người dùng đang đăng nhập.
+Yêu cầu xác thực: Bắt buộc (bất kỳ vai trò nào).
+Query Params: Không có.
+Response (200 OK):
+{
+  "user_id": 1,
+  "username": "string",
+  "email": "string",
+  "full_name": "string",
+  "phone_number": "string",
+  "address": "string",
+  "role_id": 3,
+  "status_id": 1,
+  "registration_date": "YYYY-MM-DD",
+  "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+}
+
+
+Response (401 Unauthorized): Token không hợp lệ hoặc hết hạn.
+PUT /users/me
+Mô tả: Cập nhật thông tin cá nhân của người dùng đang đăng nhập.
+Yêu cầu xác thực: Bắt buộc (bất kỳ vai trò nào).
+Request Body:
+{
+  "email": "string",          // Tùy chọn cập nhật
+  "full_name": "string",      // Tùy chọn cập nhật
+  "phone_number": "string",   // Tùy chọn cập nhật
+  "address": "string",         // Tùy chọn cập nhật
+  "password": "string"        // Tùy chọn cập nhật mật khẩu (cần xác nhận mật khẩu cũ?)
+}
+
+
+Response (200 OK): Thông tin người dùng sau khi cập nhật (tương tự GET /users/me).
+GET /users
+Mô tả: Lấy danh sách tất cả người dùng.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Query Params:
+skip: INT (Số bản ghi bỏ qua cho phân trang, mặc định 0)
+limit: INT (Số bản ghi tối đa trả về, mặc định 100)
+role_id: INT (Lọc theo vai trò)
+status_id: INT (Lọc theo trạng thái)
+q: string (Tìm kiếm theo username, full_name, email, phone_number)
+sort_by: string (Sắp xếp theo cột, ví dụ: username, registration_date)
+sort_order: string (Thứ tự sắp xếp: asc hoặc desc)
+Response (200 OK):
+[
+  {
+    "user_id": 1,
+    "username": "string",
+    "email": "string",
+    "full_name": "string",
+    "role_id": 3,
+    "role_name": "DocGia", // Có thể join để lấy tên vai trò
+    "status_id": 1,
+    "status_name": "Active", // Có thể join để lấy tên trạng thái
+    "registration_date": "YYYY-MM-DD",
+    "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+    "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+  },
+  // ...
+]
+
+
+Response (401 Unauthorized): Token không hợp lệ.
+Response (403 Forbidden): Người dùng không có vai trò Admin.
+GET /users/{user_id}
+Mô tả: Lấy thông tin chi tiết của một người dùng cụ thể.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin hoặc người dùng có user_id tương ứng).
+Path Params:
+user_id: INT (ID của người dùng cần lấy thông tin)
+Response (200 OK): Thông tin chi tiết người dùng (tương tự GET /users/me).
+Response (404 Not Found): Không tìm thấy người dùng.
+PUT /users/{user_id}
+Mô tả: Cập nhật thông tin và phân quyền/trạng thái của người dùng.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Path Params:
+user_id: INT (ID của người dùng cần cập nhật)
+Request Body:
+{
+  "email": "string",
+  "full_name": "string",
+  "phone_number": "string",
+  "address": "string",
+  "role_id": 1,             // Cập nhật vai trò
+  "status_id": 2            // Cập nhật trạng thái
+}
+
+
+Response (200 OK): Thông tin người dùng sau khi cập nhật.
+Response (404 Not Found): Không tìm thấy người dùng.
+Response (403 Forbidden): Người dùng không có vai trò Admin.
+DELETE /users/{user_id}
+Mô tả: Xóa người dùng.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Path Params:
+user_id: INT (ID của người dùng cần xóa)
+Response (204 No Content): Xóa thành công.
+Response (400 Bad Request): Không thể xóa do ràng buộc dữ liệu (ví dụ: người dùng còn sách đang mượn).
+Response (404 Not Found): Không tìm thấy người dùng.
+Response (403 Forbidden): Người dùng không có vai trò Admin.
+GET /roles
+Mô tả: Lấy danh sách các vai trò.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin hoặc CTV).
+Response (200 OK):
+[
+  {
+    "role_id": 1,
+    "role_name": "Admin",
+    "description": "string"
+  },
+  // ...
+]
+
+
+GET /user-statuses
+Mô tả: Lấy danh sách các trạng thái người dùng.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Response (200 OK):
+[
+  {
+    "status_id": 1,
+    "status_name": "Active",
+    "description": "string"
+  },
+  // ...
+]
+
+
+📚 API liên quan đến Sách & Danh mục
+GET /books
+Mô tả: Tìm kiếm và lấy danh sách sách.
+Yêu cầu xác thực: Không bắt buộc.
+Query Params:
+q: string (Từ khóa tìm kiếm theo tiêu đề, tác giả, ISBN)
+genre_id: INT (Lọc theo thể loại)
+language_id: INT (Lọc theo ngôn ngữ)
+publisher_id: INT (Lọc theo nhà xuất bản)
+tag_id: INT (Lọc theo tag)
+available_only: BOOLEAN (Chỉ lấy sách còn bản sao có sẵn, mặc định false)
+skip: INT (Phân trang)
+limit: INT (Phân trang)
+sort_by: string (Sắp xếp: title, author, publication_year, avg_rating, available_copies...)
+sort_order: string (Thứ tự: asc, desc)
+Response (200 OK):
+[
+  {
+    "book_id": 1,
+    "title": "string",
+    "author": "string",
+    "publisher_id": 1,
+    "publisher_name": "string", // Có thể join
+    "publication_year": 2023,
+    "isbn": "string",
+    "genre_id": 1,
+    "genre_name": "string", // Có thể join
+    "language_id": 1,
+    "language_name": "string", // Có thể join
+    "description": "string",
+    "total_copies": 10,
+    "available_copies": 5,
+    "cover_image_url": "string",
+    "avg_rating": 4.5,       // Điểm đánh giá trung bình (tính toán)
+    "review_count": 10,      // Số lượt đánh giá (tính toán)
+    "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+    "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+  },
+  // ...
+]
+
+
+GET /books/{book_id}
+Mô tả: Lấy thông tin chi tiết của một đầu sách, bao gồm danh sách bản sao và đánh giá.
+Yêu cầu xác thực: Không bắt buộc.
+Path Params:
+book_id: INT (ID sách)
+Response (200 OK):
+{
+  "book_id": 1,
+  "title": "string",
+  "author": "string",
+  // ... các trường thông tin sách
+  "total_copies": 10,
+  "available_copies": 5,
+  "avg_rating": 4.5,
+  "review_count": 10,
+  "copies": [             // Danh sách bản sao
+    {
+      "copy_id": 101,
+      "location_id": 1,
+      "location_info": "Dãy A, Kệ 1, Tầng 2", // Có thể join
+      "status_id": 1,
+      "status_name": "Available", // Có thể join
+      "barcode": "string",
+      "due_date": null // Nếu trạng thái là Borrowed, hiển thị hạn trả
+    },
+    // ...
+  ],
+  "reviews": [            // Danh sách đánh giá (có thể phân trang riêng nếu nhiều)
+    {
+      "review_id": 1,
+      "user_id": 10,
+      "user_full_name": "string", // Có thể join
+      "rating": 5,
+      "comment": "string",
+      "review_date": "YYYY-MM-DDTHH:MM:SS.sssZ",
+      "scores": [ // Điểm theo tiêu chí
+        {"criteria_name": "Nội dung", "score": 5},
+        // ...
+      ]
+    },
+    // ...
+  ],
+  "tags": [ // Danh sách tags
+    {"tag_id": 1, "tag_name": "string"},
+    // ...
+  ]
+}
+
+
+Response (404 Not Found): Không tìm thấy sách.
+POST /books
+Mô tả: Thêm sách mới.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Request Body:
+{
+  "title": "string",
+  "author": "string",
+  "publisher_id": 1,         // Tùy chọn
+  "publication_year": 2023,  // Tùy chọn
+  "isbn": "string",          // Tùy chọn
+  "genre_id": 1,             // Tùy chọn
+  "language_id": 1,          // Tùy chọn
+  "description": "string",   // Tùy chọn
+  "cover_image_url": "string", // Tùy chọn
+  "initial_copies": 5,       // Số lượng bản sao ban đầu (tùy chọn, >=0)
+  "tag_ids": [1, 2, 3]       // Danh sách ID tags (tùy chọn)
+}
+
+
+Response (201 Created): Thông tin sách đã tạo (tương tự GET /books/{book_id} nhưng không bao gồm copies, reviews).
+Response (403 Forbidden): Người dùng không có quyền.
+PUT /books/{book_id}
+Mô tả: Cập nhật thông tin sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Path Params: book_id: INT
+Request Body: Cấu trúc tương tự POST, các trường là tùy chọn (chỉ gửi các trường cần cập nhật).
+Response (200 OK): Thông tin sách sau khi cập nhật.
+Response (404 Not Found): Không tìm thấy sách.
+Response (403 Forbidden): Người dùng không có quyền.
+DELETE /books/{book_id}
+Mô tả: Xóa sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Path Params: book_id: INT
+Response (204 No Content): Xóa thành công.
+Response (400 Bad Request): Không thể xóa do ràng buộc (ví dụ: còn bản sao đang mượn).
+Response (404 Not Found): Không tìm thấy sách.
+Response (403 Forbidden): Người dùng không có quyền.
+API cho các bảng danh mục (/genres, /languages, /publishers, /tags, /book-locations, /review-criteria, /shift-types, /penalty-rules, /user-statuses, /copy-statuses, /borrowing-statuses, /reservation-statuses, /schedule-statuses, /suggestion-statuses, /notification-types, /notification-statuses, /action-types)
+Mô tả: Các API CRUD cơ bản cho các bảng danh mục.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin). Một số bảng có thể cho CTV xem (GET).
+Endpoints:
+GET /<resource-name>: Lấy danh sách.
+POST /<resource-name>: Thêm mới.
+GET /<resource-name>/{id}: Lấy chi tiết.
+PUT /<resource-name>/{id}: Sửa.
+DELETE /<resource-name>/{id}: Xóa.
+Request/Response Body: Tương ứng với cấu trúc các bảng danh mục đã chi tiết hóa.
+GET /copies
+Mô tả: Lấy danh sách bản sao sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Query Params:
+book_id: INT (Lọc theo đầu sách)
+status_id: INT (Lọc theo trạng thái bản sao)
+location_id: INT (Lọc theo vị trí)
+barcode: string (Tìm theo mã vạch)
+skip: INT (Phân trang)
+limit: INT (Phân trang)
+sort_by: string (Sắp xếp: copy_id, barcode, status_id...)
+sort_order: string (asc, desc)
+Response (200 OK):
+[
+  {
+    "copy_id": 101,
+    "book_id": 1,
+    "book_title": "string", // Có thể join
+    "location_id": 1,
+    "location_info": "string", // Có thể join
+    "status_id": 1,
+    "status_name": "string", // Có thể join
+    "barcode": "string",
+    "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+    "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+  },
+  // ...
+]
+
+
+POST /copies
+Mô tả: Thêm bản sao sách mới.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Request Body:
+{
+  "book_id": 1,
+  "location_id": 1, // Tùy chọn
+  "status_id": 1,   // Mặc định là Available?
+  "barcode": "string" // Tùy chọn, hệ thống có thể tự sinh
+}
+
+
+Response (201 Created): Thông tin bản sao đã tạo.
+PUT /copies/{copy_id}
+Mô tả: Cập nhật thông tin bản sao (vị trí, trạng thái, mã vạch).
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Path Params: copy_id: INT
+Request Body:
+{
+  "location_id": 2, // Tùy chọn cập nhật
+  "status_id": 3,   // Tùy chọn cập nhật
+  "barcode": "string" // Tùy chọn cập nhật
+}
+
+
+Response (200 OK): Thông tin bản sao sau khi cập nhật.
+Response (404 Not Found): Không tìm thấy bản sao.
+DELETE /copies/{copy_id}
+Mô tả: Xóa bản sao sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Path Params: copy_id: INT
+Response (204 No Content): Xóa thành công.
+Response (400 Bad Request): Không thể xóa do ràng buộc (ví dụ: đang được mượn).
+Response (404 Not Found): Không tìm thấy bản sao.
+POST /books/{book_id}/reviews
+Mô tả: Gửi đánh giá và nhận xét cho sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: Độc giả).
+Path Params: book_id: INT
+Request Body:
+{
+  "rating": 5, // 1-5
+  "comment": "string", // Tùy chọn
+  "scores": [ // Điểm theo tiêu chí (tùy chọn)
+    {"criteria_id": 1, "score": 4},
+    // ...
+  ]
+}
+
+
+Response (201 Created): Thông tin đánh giá đã tạo.
+Response (400 Bad Request): Đã đánh giá sách này rồi.
+Response (403 Forbidden): Người dùng không có quyền.
+GET /books/{book_id}/reviews
+Mô tả: Lấy danh sách đánh giá và nhận xét của một sách.
+Yêu cầu xác thực: Không bắt buộc.
+Path Params: book_id: INT
+Query Params: skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách đánh giá (tương tự phần reviews trong GET /books/{book_id}).
+POST /book-suggestions
+Mô tả: Gửi đề xuất sách mới.
+Yêu cầu xác thực: Bắt buộc (vai trò: Độc giả).
+Request Body:
+{
+  "suggested_title": "string",
+  "suggested_author": "string", // Tùy chọn
+  "suggested_publisher": "string", // Tùy chọn
+  "suggestion_notes": "string" // Tùy chọn
+}
+
+
+Response (201 Created): Thông tin đề xuất đã tạo.
+Response (403 Forbidden): Người dùng không có quyền.
+GET /book-suggestions
+Mô tả: Lấy danh sách đề xuất sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Query Params:
+status_id: INT (Lọc theo trạng thái)
+user_id: INT (Lọc theo người đề xuất)
+q: string (Tìm kiếm theo tiêu đề, tác giả)
+skip, limit, sort_by, sort_order.
+Response (200 OK):
+[
+  {
+    "suggestion_id": 1,
+    "user_id": 10,
+    "user_full_name": "string", // Có thể join
+    "suggested_title": "string",
+    "suggested_author": "string",
+    "suggestion_date": "YYYY-MM-DDTHH:MM:SS.sssZ",
+    "status_id": 1,
+    "status_name": "string", // Có thể join
+    "handled_by_user_id": null,
+    "handling_notes": null
+  },
+  // ...
+]
+
+
+Response (403 Forbidden): Người dùng không có quyền.
+PUT /book-suggestions/{suggestion_id}
+Mô tả: Cập nhật trạng thái xử lý đề xuất sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Path Params: suggestion_id: INT
+Request Body:
+{
+  "status_id": 2, // Trạng thái mới (Reviewed, Added, Rejected)
+  "handling_notes": "string" // Ghi chú xử lý (tùy chọn)
+}
+
+
+Response (200 OK): Thông tin đề xuất sau khi cập nhật.
+Response (404 Not Found): Không tìm thấy đề xuất.
+Response (403 Forbidden): Người dùng không có quyền.
+📅 API liên quan đến Mượn - Trả & Đặt trước
+POST /borrowings
+Mô tả: Xác nhận mượn sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Request Body:
+{
+  "user_id": 10,   // Người mượn
+  "copy_id": 101   // Bản sao sách được mượn
+}
+
+
+Response (201 Created):
+{
+  "borrow_id": 1,
+  "copy_id": 101,
+  "user_id": 10,
+  "borrow_date": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "due_date": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "return_date": null,
+  "status_id": 1, // Borrowed
+  "fine_amount": 0.00,
+  "handled_by_user_id": 20, // ID của CTV/Admin thực hiện
+  "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+}
+
+
+Response (400 Bad Request): Bản sao không có sẵn, người dùng vượt hạn mức, v.v.
+Response (403 Forbidden): Người dùng không có quyền.
+PUT /borrowings/{borrow_id}/return
+Mô tả: Xác nhận trả sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Path Params: borrow_id: INT (ID của lượt mượn cần trả)
+Request Body: (Tùy chọn)
+{
+  "notes": "string" // Ghi chú thêm khi trả sách
+}
+
+
+Response (200 OK): Thông tin lượt mượn sau khi trả, bao gồm return_date, status_id='Returned' và fine_amount.
+Response (400 Bad Request): Lượt mượn không ở trạng thái 'Borrowed'.
+Response (404 Not Found): Không tìm thấy lượt mượn.
+Response (403 Forbidden): Người dùng không có quyền.
+POST /borrowings/bulk-borrow
+Mô tả: Mượn nhiều sách cùng lúc.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Request Body:
+{
+  "user_id": 10,
+  "copy_ids": [101, 102, 105] // Danh sách ID bản sao
+}
+
+
+Response (200 OK): Kết quả xử lý cho từng bản sao trong danh sách.
+[
+  {"copy_id": 101, "status": "success", "borrow_id": 1},
+  {"copy_id": 102, "status": "error", "message": "Bản sao không có sẵn"},
+  // ...
+]
+
+
+Response (403 Forbidden): Người dùng không có quyền.
+POST /borrowings/bulk-return
+Mô tả: Trả nhiều sách cùng lúc.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Request Body:
+{
+  "copy_ids": [101, 102, 105] // Danh sách ID bản sao cần trả
+}
+
+
+Response (200 OK): Kết quả xử lý cho từng bản sao và tổng phí phạt.
+{
+  "results": [
+    {"copy_id": 101, "status": "success", "borrow_id": 1, "fine_amount": 0.00},
+    {"copy_id": 102, "status": "error", "message": "Không tìm thấy lượt mượn đang hoạt động"},
+    // ...
+  ],
+  "total_fine_amount": 5000.00 // Tổng phí phạt từ các lượt trả thành công
+}
+
+
+Response (403 Forbidden): Người dùng không có quyền.
+GET /borrowings
+Mô tả: Lấy danh sách các lượt mượn.
+Yêu cầu xác thực: Bắt buộc (Admin/CTV xem tất cả, Độc giả xem của mình).
+Query Params:
+user_id: INT (Lọc theo người dùng, chỉ Admin/CTV)
+copy_id: INT (Lọc theo bản sao)
+book_id: INT (Lọc theo đầu sách, cần join Copies)
+status_id: INT (Lọc theo trạng thái mượn)
+borrow_date_from, borrow_date_to: DATE (Lọc theo khoảng ngày mượn)
+due_date_from, due_date_to: DATE (Lọc theo khoảng hạn trả)
+return_date_from, return_date_to: DATE (Lọc theo khoảng ngày trả)
+is_overdue: BOOLEAN (Lọc các lượt mượn quá hạn)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách lượt mượn (bao gồm thông tin sách, người dùng, bản sao).
+GET /borrowings/{borrow_id}
+Mô tả: Lấy thông tin chi tiết một lượt mượn.
+Yêu cầu xác thực: Bắt buộc (Admin/CTV xem bất kỳ, Độc giả chỉ xem của mình).
+Path Params: borrow_id: INT
+Response (200 OK): Thông tin chi tiết lượt mượn.
+POST /reservations
+Mô tả: Đặt mượn sách trước.
+Yêu cầu xác thực: Bắt buộc (vai trò: Độc giả).
+Request Body:
+{
+  "book_id": 1 // Đầu sách muốn đặt
+}
+
+
+Response (201 Created): Thông tin lượt đặt trước đã tạo.
+{
+  "reservation_id": 1,
+  "book_id": 1,
+  "user_id": 10,
+  "reservation_date": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "expiry_date": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "status_id": 1, // Pending
+  "assigned_copy_id": null,
+  "handled_by_user_id": null,
+  "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+  "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+}
+
+
+Response (400 Bad Request): Đã đặt sách này rồi, sách không cho phép đặt trước, v.v.
+Response (403 Forbidden): Người dùng không có quyền.
+PUT /reservations/{reservation_id}/cancel
+Mô tả: Hủy lượt đặt trước.
+Yêu cầu xác thực: Bắt buộc (Độc giả chỉ hủy của mình, CTV/Admin hủy bất kỳ).
+Path Params: reservation_id: INT
+Response (200 OK): Thông tin lượt đặt trước sau khi hủy (status_id='Cancelled').
+Response (400 Bad Request): Lượt đặt trước không ở trạng thái có thể hủy.
+Response (404 Not Found): Không tìm thấy lượt đặt trước.
+Response (403 Forbidden): Người dùng không có quyền hoặc không phải lượt đặt của mình.
+PUT /reservations/{reservation_id}/assign-copy
+Mô tả: Gán bản sao sách cho lượt đặt trước.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV, Admin).
+Path Params: reservation_id: INT
+Request Body:
+{
+  "copy_id": 101 // Bản sao sách được gán
+}
+
+
+Response (200 OK): Thông tin lượt đặt trước sau khi gán (status_id='Ready', assigned_copy_id).
+Response (400 Bad Request): Lượt đặt trước không ở trạng thái 'Pending', bản sao không có sẵn, bản sao không thuộc đầu sách đặt trước.
+Response (404 Not Found): Không tìm thấy lượt đặt trước hoặc bản sao.
+Response (403 Forbidden): Người dùng không có quyền.
+GET /reservations
+Mô tả: Lấy danh sách các lượt đặt trước.
+Yêu cầu xác thực: Bắt buộc (Admin/CTV xem tất cả, Độc giả xem của mình).
+Query Params:
+user_id: INT (Lọc theo người dùng, chỉ Admin/CTV)
+book_id: INT (Lọc theo đầu sách)
+status_id: INT (Lọc theo trạng thái đặt trước)
+reservation_date_from, reservation_date_to: DATE
+expiry_date_from, expiry_date_to: DATE
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách lượt đặt trước (bao gồm thông tin sách, người dùng).
+GET /reservations/{reservation_id}
+Mô tả: Lấy thông tin chi tiết một lượt đặt trước.
+Yêu cầu xác thực: Bắt buộc (Admin/CTV xem bất kỳ, Độc giả chỉ xem của mình).
+Path Params: reservation_id: INT
+Response (200 OK): Thông tin chi tiết lượt đặt trước.
+API cho các bảng trạng thái mượn/đặt (/borrowing-statuses, /reservation-statuses)
+Mô tả: Các API GET cơ bản để lấy danh sách trạng thái.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+🧑‍🤝‍🧑 API liên quan đến Cộng tác viên & Lịch trực
+POST /schedules
+Mô tả: Cộng tác viên đăng ký lịch trực.
+Yêu cầu xác thực: Bắt buộc (vai trò: CTV).
+Request Body:
+{
+  "shift_date": "YYYY-MM-DD",
+  "shift_type_id": 1 // ID loại ca trực
+}
+
+
+Response (201 Created): Thông tin lịch trực đã tạo (status_id='Pending').
+Response (400 Bad Request): Đã đăng ký lịch này rồi, ngày không hợp lệ.
+Response (403 Forbidden): Người dùng không có quyền CTV.
+GET /schedules
+Mô tả: Lấy danh sách lịch trực.
+Yêu cầu xác thực: Bắt buộc (CTV xem của mình, Admin xem tất cả).
+Query Params:
+user_id: INT (Lọc theo CTV, chỉ Admin)
+status_id: INT (Lọc theo trạng thái)
+date: DATE (Lọc theo ngày cụ thể)
+date_from, date_to: DATE (Lọc theo khoảng ngày)
+shift_type_id: INT (Lọc theo loại ca)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách lịch trực (bao gồm thông tin CTV, loại ca).
+PUT /schedules/{schedule_id}/approve
+Mô tả: Admin duyệt lịch trực.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Path Params: schedule_id: INT
+Response (200 OK): Thông tin lịch trực sau khi duyệt (status_id='Approved', approved_by_user_id).
+Response (400 Bad Request): Lịch trực không ở trạng thái 'Pending'.
+Response (404 Not Found): Không tìm thấy lịch trực.
+Response (403 Forbidden): Người dùng không có quyền Admin.
+PUT /schedules/{schedule_id}/reject
+Mô tả: Admin từ chối lịch trực.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Path Params: schedule_id: INT
+Request Body: (Tùy chọn)
+{
+  "notes": "string" // Lý do từ chối
+}
+
+
+Response (200 OK): Thông tin lịch trực sau khi từ chối (status_id='Rejected', approved_by_user_id, notes).
+Response (400 Bad Request): Lịch trực không ở trạng thái 'Pending'.
+Response (404 Not Found): Không tìm thấy lịch trực.
+Response (403 Forbidden): Người dùng không có quyền Admin.
+POST /schedules/assign
+Mô tả: Admin chỉ định lịch trực cho CTV.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Request Body:
+{
+  "user_id": 20, // CTV được chỉ định
+  "shift_date": "YYYY-MM-DD",
+  "shift_type_id": 1
+}
+
+
+Response (201 Created): Thông tin lịch trực đã tạo (status_id='Approved', approved_by_user_id).
+Response (400 Bad Request): Lịch trực đã tồn tại cho CTV đó vào ngày/ca đó.
+Response (403 Forbidden): Người dùng không có quyền Admin.
+PUT /schedules/{schedule_id}
+Mô tả: Admin sửa lịch trực.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Path Params: schedule_id: INT
+Request Body:
+{
+  "shift_date": "YYYY-MM-DD", // Tùy chọn cập nhật
+  "shift_type_id": 2,         // Tùy chọn cập nhật
+  "status_id": 1,             // Tùy chọn cập nhật trạng thái (Approved, Pending, Rejected)
+  "notes": "string"           // Tùy chọn cập nhật
+}
+
+
+Response (200 OK): Thông tin lịch trực sau khi cập nhật.
+Response (404 Not Found): Không tìm thấy lịch trực.
+Response (403 Forbidden): Người dùng không có quyền Admin.
+DELETE /schedules/{schedule_id}
+Mô tả: Admin xóa lịch trực.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Path Params: schedule_id: INT
+Response (204 No Content): Xóa thành công.
+Response (404 Not Found): Không tìm thấy lịch trực.
+Response (403 Forbidden): Người dùng không có quyền Admin.
+GET /shift-types
+Mô tả: Lấy danh sách các loại ca trực.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Response (200 OK): Danh sách loại ca trực.
+GET /schedule-statuses
+Mô tả: Lấy danh sách trạng thái lịch trực.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Response (200 OK): Danh sách trạng thái lịch trực.
+GET /library/open-hours
+Mô tả: Lấy giờ mở cửa dựa trên lịch trực đã duyệt.
+Yêu cầu xác thực: Không bắt buộc.
+Query Params:
+start_date: DATE (Ngày bắt đầu)
+end_date: DATE (Ngày kết thúc)
+Response (200 OK):
+[
+  {
+    "date": "YYYY-MM-DD",
+    "shifts": [
+      {"shift_name": "Ca sáng", "start_time": "HH:MM", "end_time": "HH:MM"},
+      // ... các ca trực đã duyệt trong ngày
+    ]
+  },
+  // ... các ngày khác
+]
+
+
+📊 API liên quan đến Thống kê & Báo cáo
+GET /reports/book-stats
+Mô tả: Thống kê số sách theo thể loại, số sách đang mượn/đặt trước.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Query Params:
+type: string (Loại thống kê: by_genre, borrowed_count, reserved_count)
+Response (200 OK): Cấu trúc response phụ thuộc vào type.
+type=by_genre: [{"genre_name": "string", "book_count": 100}, ...]
+type=borrowed_count: {"borrowed_count": 500}
+type=reserved_count: {"reserved_count": 150}
+Response (403 Forbidden): Người dùng không có quyền.
+GET /reports/top-books
+Mô tả: Top sách được quan tâm/mượn nhiều.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Query Params:
+criteria: string (Tiêu chí: most_borrowed, most_reserved, highest_rating)
+limit: INT (Số lượng sách trong top, mặc định 10)
+date_from, date_to: DATE (Khoảng thời gian để tính toán, tùy chọn)
+Response (200 OK): Danh sách sách (bao gồm số liệu tương ứng với tiêu chí).
+GET /reports/user-borrowing-stats
+Mô tả: Thống kê hoạt động mượn của bạn đọc.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Query Params:
+user_id: INT (Lọc theo người dùng, tùy chọn)
+date_from, date_to: DATE (Khoảng thời gian, tùy chọn)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách độc giả kèm số liệu mượn trả.
+[
+  {
+    "user_id": 10,
+    "full_name": "string",
+    "total_borrowed_count": 50,
+    "current_borrowed_count": 5,
+    "overdue_count": 2,
+    "total_fine_amount": 15000.00
+  },
+  // ...
+]
+
+
+GET /reports/ctv-schedule-history
+Mô tả: Lịch sử trực của cộng tác viên.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Query Params:
+user_id: INT (Lọc theo CTV, tùy chọn)
+date_from, date_to: DATE (Khoảng thời gian, tùy chọn)
+status_id: INT (Lọc theo trạng thái lịch trực, tùy chọn)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách lịch trực trong quá khứ (tương tự GET /schedules nhưng tập trung vào lịch đã hoàn thành).
+GET /reports/export
+Mô tả: Xuất báo cáo thống kê.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Query Params:
+report_type: string (Loại báo cáo cần xuất: book_stats, top_books, user_borrowing_stats, ctv_schedule_history)
+format: string (Định dạng: csv, pdf)
+...: Các query params khác tùy thuộc vào report_type (bộ lọc, tiêu chí...).
+Response (200 OK): Trả về tệp báo cáo (CSV hoặc PDF).
+Response (400 Bad Request): Tham số không hợp lệ.
+Response (403 Forbidden): Người dùng không có quyền.
+GET /dashboard/summary
+Mô tả: Dữ liệu tổng quan cho Dashboard Admin/CTV.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Response (200 OK):
+{
+  "current_borrowed_count": 500,
+  "pending_reservations_count": 50,
+  "pending_suggestions_count": 10,
+  "upcoming_schedules_count": 15, // Lịch trực sắp tới của CTV (nếu là CTV, chỉ của mình)
+  "unread_notifications_count": 5, // Thông báo chưa đọc
+  // ... các chỉ số quan trọng khác
+}
+
+
+GET /activity-logs
+Mô tả: Xem lịch sử hoạt động.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Query Params:
+user_id: INT (Lọc theo người dùng, tùy chọn)
+action_type_id: INT (Lọc theo loại hành động, tùy chọn)
+resource_type: string (Lọc theo loại tài nguyên, tùy chọn)
+resource_id: INT (Lọc theo ID tài nguyên, tùy chọn)
+date_from, date_to: DATE (Khoảng thời gian, tùy chọn)
+q: string (Tìm kiếm trong mô tả hành động, tùy chọn)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách log hoạt động.
+GET /audit-logs
+Mô tả: Xem lịch sử thay đổi dữ liệu quan trọng.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Query Params:
+user_id: INT (Người thực hiện thay đổi, tùy chọn)
+table_name: string (Tên bảng, tùy chọn)
+record_id: INT (ID bản ghi, tùy chọn)
+action_type: string (Loại thao tác: INSERT, UPDATE, DELETE, tùy chọn)
+date_from, date_to: DATE (Khoảng thời gian, tùy chọn)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách log audit.
+GET /copies/{copy_id}/history
+Mô tả: Xem lịch sử chi tiết của một bản sao sách.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Path Params: copy_id: INT
+Query Params: skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách các sự kiện lịch sử của bản sao đó.
+GET /search-logs
+Mô tả: Xem lịch sử tìm kiếm.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+Query Params:
+user_id: INT (Người dùng tìm kiếm, tùy chọn)
+q: string (Chuỗi tìm kiếm, tùy chọn)
+date_from, date_to: DATE (Khoảng thời gian, tùy chọn)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách log tìm kiếm.
+🔔 API liên quan đến Thông báo & Nhắc nhở
+GET /notifications/me
+Mô tả: Lấy danh sách thông báo của người dùng đang đăng nhập.
+Yêu cầu xác thực: Bắt buộc (bất kỳ vai trò nào).
+Query Params:
+status_id: INT (Lọc theo trạng thái: Unread, Read)
+type_id: INT (Lọc theo loại thông báo)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách thông báo của người dùng.
+[
+  {
+    "notification_id": 1,
+    "user_id": 10,
+    "type_id": 1,
+    "type_name": "BorrowDueReminder", // Có thể join
+    "content": "string",
+    "status_id": 1, // Unread
+    "status_name": "Unread", // Có thể join
+    "delivery_method": "Email",
+    "related_record_type": "Borrowing",
+    "related_record_id": 10,
+    "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+    "sent_at": "YYYY-MM-DDTHH:MM:SS.sssZ" // NULL nếu chưa gửi
+  },
+  // ...
+]
+
+
+PUT /notifications/{notification_id}/mark-as-read
+Mô tả: Đánh dấu thông báo là đã đọc.
+Yêu cầu xác thực: Bắt buộc (Người dùng chỉ đánh dấu của mình).
+Path Params: notification_id: INT
+Response (200 OK): Thông tin thông báo sau khi cập nhật (status_id='Read').
+Response (404 Not Found): Không tìm thấy thông báo.
+Response (403 Forbidden): Không phải thông báo của người dùng.
+API cho các bảng loại/trạng thái thông báo (/notification-types, /notification-statuses)
+Mô tả: Các API GET cơ bản để lấy danh sách loại/trạng thái thông báo.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin).
+✨ API liên quan đến Sự kiện
+GET /events
+Mô tả: Lấy danh sách sự kiện.
+Yêu cầu xác thực: Không bắt buộc.
+Query Params:
+upcoming_only: BOOLEAN (Chỉ lấy sự kiện sắp diễn ra/đang diễn ra, mặc định true)
+date_from, date_to: DATE (Khoảng thời gian, tùy chọn)
+q: string (Tìm kiếm theo tên, mô tả, địa điểm)
+skip, limit, sort_by, sort_order.
+Response (200 OK): Danh sách sự kiện.
+[
+  {
+    "event_id": 1,
+    "event_name": "string",
+    "description": "string",
+    "event_date": "YYYY-MM-DD",
+    "start_time": "HH:MM:SS",
+    "end_time": "HH:MM:SS", // NULL nếu không có
+    "location": "string",
+    "organizer_user_id": 20, // NULL nếu không có
+    "organizer_full_name": "string", // Có thể join
+    "created_at": "YYYY-MM-DDTHH:MM:SS.sssZ",
+    "updated_at": "YYYY-MM-DDTHH:MM:SS.sssZ"
+  },
+  // ...
+]
+
+
+GET /events/{event_id}
+Mô tả: Lấy thông tin chi tiết một sự kiện.
+Yêu cầu xác thực: Không bắt buộc.
+Path Params: event_id: INT
+Response (200 OK): Thông tin chi tiết sự kiện.
+POST /events
+Mô tả: Thêm sự kiện mới.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Request Body:
+{
+  "event_name": "string",
+  "description": "string",
+  "event_date": "YYYY-MM-DD",
+  "start_time": "HH:MM:SS",
+  "end_time": "HH:MM:SS", // Tùy chọn
+  "location": "string", // Tùy chọn
+  "organizer_user_id": 20 // Tùy chọn, mặc định là người tạo?
+}
+
+
+Response (201 Created): Thông tin sự kiện đã tạo.
+Response (403 Forbidden): Người dùng không có quyền.
+PUT /events/{event_id}
+Mô tả: Sửa thông tin sự kiện.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Path Params: event_id: INT
+Request Body: Cấu trúc tương tự POST, các trường là tùy chọn.
+Response (200 OK): Thông tin sự kiện sau khi cập nhật.
+Response (404 Not Found): Không tìm thấy sự kiện.
+Response (403 Forbidden): Người dùng không có quyền.
+DELETE /events/{event_id}
+Mô tả: Xóa sự kiện.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Path Params: event_id: INT
+Response (204 No Content): Xóa thành công.
+Response (404 Not Found): Không tìm thấy sự kiện.
+Response (403 Forbidden): Người dùng không có quyền.
+POST /events/{event_id}/register
+Mô tả: Đăng ký tham gia sự kiện.
+Yêu cầu xác thực: Bắt buộc (vai trò: Độc giả).
+Path Params: event_id: INT
+Response (201 Created): Thông tin đăng ký.
+{
+  "registration_id": 1,
+  "event_id": 1,
+  "user_id": 10,
+  "registration_date": "YYYY-MM-DDTHH:MM:SS.sssZ"
+}
+
+
+Response (400 Bad Request): Đã đăng ký rồi, sự kiện đã kết thúc, sự kiện không cho phép đăng ký.
+Response (403 Forbidden): Người dùng không có quyền Độc giả.
+DELETE /events/{event_id}/register
+Mô tả: Hủy đăng ký tham gia sự kiện.
+Yêu cầu xác thực: Bắt buộc (vai trò: Độc giả).
+Path Params: event_id: INT
+Response (204 No Content): Hủy đăng ký thành công.
+Response (404 Not Found): Không tìm thấy đăng ký của người dùng cho sự kiện này.
+Response (403 Forbidden): Không phải đăng ký của người dùng.
+GET /events/{event_id}/registrations
+Mô tả: Lấy danh sách người đăng ký tham gia sự kiện.
+Yêu cầu xác thực: Bắt buộc (vai trò: Admin, CTV).
+Path Params: event_id: INT
+Query Params: skip, limit.
+Response (200 OK): Danh sách người dùng đã đăng ký.
+[
+  {
+    "user_id": 10,
+    "full_name": "string",
+    "registration_date": "YYYY-MM-DDTHH:MM:SS.sssZ"
+  },
+  // ...
+]
+
+
+Response (404 Not Found): Không tìm thấy sự kiện.
+Response (403 Forbidden): Người dùng không có quyền.
+Tài liệu này cung cấp đặc tả chi tiết cho các API endpoint chính. Đây sẽ là cơ sở để bạn định nghĩa các Pydantic schemas và triển khai logic trong FastAPI.
+Bước tiếp theo, bạn có thể bắt đầu viết code Backend, bắt đầu từ việc thiết lập môi trường, kết nối CSDL và định nghĩa các models/schemas/endpoints cơ bản.
+

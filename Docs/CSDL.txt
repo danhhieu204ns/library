@@ -1,0 +1,350 @@
+Thiết kế chi tiết Cơ sở dữ liệu cho Website Quản lý Thư viện Cộng đồng
+Tài liệu này chi tiết hóa cấu trúc các bảng trong cơ sở dữ liệu dựa trên kế hoạch sơ bộ và các cải tiến đã đề xuất. Mỗi phần mô tả một bảng, bao gồm mục đích, danh sách các trường, kiểu dữ liệu và các ràng buộc chính.
+1. Bảng Roles
+Mục đích: Lưu danh sách các vai trò người dùng trong hệ thống.
+Các trường:
+role_id: INT (PK, Auto Increment) - ID duy nhất cho vai trò.
+role_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên vai trò (ví dụ: 'Admin', 'CTV', 'DocGia').
+description: TEXT - Mô tả chi tiết về vai trò.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+2. Bảng UserStatuses
+Mục đích: Lưu các trạng thái hoạt động của người dùng.
+Các trường:
+status_id: INT (PK, Auto Increment) - ID duy nhất cho trạng thái.
+status_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên trạng thái (ví dụ: 'Active', 'Inactive', 'Banned').
+description: TEXT - Mô tả chi tiết về trạng thái.
+3. Bảng Users
+Mục đích: Lưu thông tin chi tiết về tất cả người dùng (độc giả, cộng tác viên, admin).
+Các trường:
+user_id: INT (PK, Auto Increment) - ID duy nhất cho người dùng.
+username: VARCHAR(100) (NOT NULL, UNIQUE) - Tên đăng nhập.
+password_hash: VARCHAR(255) (NOT NULL) - Hash của mật khẩu.
+email: VARCHAR(255) (UNIQUE) - Địa chỉ email (có thể cho phép NULL nếu không bắt buộc).
+full_name: VARCHAR(255) (NOT NULL) - Họ và tên đầy đủ.
+role_id: INT (FK to Roles.role_id, NOT NULL) - Vai trò chính của người dùng.
+registration_date: DATE (NOT NULL) - Ngày đăng ký tài khoản.
+status_id: INT (FK to UserStatuses.status_id, NOT NULL) - Trạng thái hoạt động của người dùng.
+phone_number: VARCHAR(20) - Số điện thoại (có thể cho phép NULL).
+address: TEXT - Địa chỉ liên hệ.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+4. Bảng UserRoles (Nếu một người dùng có thể có nhiều vai trò)
+Mục đích: Liên kết người dùng với nhiều vai trò.
+Các trường:
+user_id: INT (FK to Users.user_id) - ID người dùng.
+role_id: INT (FK to Roles.role_id) - ID vai trò.
+PRIMARY KEY (user_id, role_id) - Khóa chính kết hợp.
+5. Bảng Genres
+Mục đích: Lưu danh mục thể loại sách.
+Các trường:
+genre_id: INT (PK, Auto Increment) - ID duy nhất cho thể loại.
+genre_name: VARCHAR(100) (NOT NULL, UNIQUE) - Tên thể loại (ví dụ: 'Tiểu thuyết', 'Khoa học', 'Lịch sử').
+description: TEXT - Mô tả về thể loại.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+6. Bảng Languages
+Mục đích: Lưu danh mục ngôn ngữ sách.
+Các trường:
+language_id: INT (PK, Auto Increment) - ID duy nhất cho ngôn ngữ.
+language_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên ngôn ngữ (ví dụ: 'Tiếng Việt', 'Tiếng Anh').
+7. Bảng Publishers (Có thể thêm nếu cần quản lý nhà xuất bản chi tiết)
+Mục đích: Lưu thông tin về các nhà xuất bản.
+Các trường:
+publisher_id: INT (PK, Auto Increment) - ID duy nhất.
+publisher_name: VARCHAR(255) (NOT NULL, UNIQUE) - Tên nhà xuất bản.
+address: TEXT - Địa chỉ.
+website: VARCHAR(255) - Website.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+8. Bảng Books
+Mục đích: Lưu thông tin chi tiết về các đầu sách.
+Các trường:
+book_id: INT (PK, Auto Increment) - ID duy nhất cho đầu sách.
+title: VARCHAR(255) (NOT NULL) - Tiêu đề sách.
+author: VARCHAR(255) (NOT NULL) - Tác giả.
+publisher_id: INT (FK to Publishers.publisher_id) - Nhà xuất bản (có thể cho phép NULL nếu không có bảng Publishers riêng).
+publication_year: INT - Năm xuất bản.
+isbn: VARCHAR(20) (UNIQUE) - Mã ISBN (có thể cho phép NULL).
+genre_id: INT (FK to Genres.genre_id) - Thể loại chính của sách.
+language_id: INT (FK to Languages.language_id) - Ngôn ngữ của sách.
+description: TEXT - Tóm tắt nội dung sách.
+total_copies: INT (NOT NULL, Default 0) - Tổng số bản sao của đầu sách này.
+available_copies: INT (NOT NULL, Default 0) - Số bản sao hiện có sẵn để mượn.
+cover_image_url: VARCHAR(255) - URL ảnh bìa sách.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+9. Bảng Tags
+Mục đích: Lưu danh sách các thẻ/chủ đề cho sách.
+Các trường:
+tag_id: INT (PK, Auto Increment) - ID duy nhất cho thẻ.
+tag_name: VARCHAR(100) (NOT NULL, UNIQUE) - Tên thẻ (ví dụ: 'Kinh tế', 'Lập trình', 'Thiếu nhi').
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+10. Bảng BookTags
+Mục đích: Liên kết nhiều-nhiều giữa Books và Tags.
+Các trường:
+book_id: INT (FK to Books.book_id) - ID đầu sách.
+tag_id: INT (FK to Tags.tag_id) - ID thẻ.
+PRIMARY KEY (book_id, tag_id) - Khóa chính kết hợp.
+11. Bảng BookLocations
+Mục đích: Lưu thông tin vị trí cụ thể trong thư viện.
+Các trường:
+location_id: INT (PK, Auto Increment) - ID duy nhất cho vị trí.
+shelf_number: VARCHAR(50) (NOT NULL) - Số dãy sách.
+row_number: VARCHAR(50) (NOT NULL) - Số kệ sách trong dãy.
+level_number: VARCHAR(50) (NOT NULL) - Tầng/ngăn sách trên kệ.
+description: TEXT - Mô tả thêm về vị trí.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+12. Bảng CopyStatuses
+Mục đích: Lưu các trạng thái của bản sao sách.
+Các trường:
+status_id: INT (PK, Auto Increment) - ID duy nhất cho trạng thái.
+status_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên trạng thái (ví dụ: 'Available', 'Borrowed', 'Reserved', 'Lost', 'Damaged').
+description: TEXT - Mô tả chi tiết về trạng thái.
+13. Bảng Copies
+Mục đích: Lưu thông tin từng bản sao vật lý cụ thể của một đầu sách.
+Các trường:
+copy_id: INT (PK, Auto Increment) - ID duy nhất cho bản sao.
+book_id: INT (FK to Books.book_id, NOT NULL) - ID của đầu sách mà bản sao này thuộc về.
+location_id: INT (FK to BookLocations.location_id) - Vị trí hiện tại của bản sao.
+status_id: INT (FK to CopyStatuses.status_id, NOT NULL) - Trạng thái hiện tại của bản sao.
+barcode: VARCHAR(100) (UNIQUE) - Mã vạch của bản sao (nếu có).
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+14. Bảng BorrowingStatuses
+Mục đích: Lưu các trạng thái của lượt mượn.
+Các trường:
+status_id: INT (PK, Auto Increment) - ID duy nhất cho trạng thái.
+status_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên trạng thái (ví dụ: 'Borrowed', 'Returned', 'Overdue', 'Lost', 'Damaged').
+description: TEXT - Mô tả chi tiết về trạng thái.
+15. Bảng Borrowings
+Mục đích: Lưu thông tin các lượt mượn sách của độc giả.
+Các trường:
+borrow_id: INT (PK, Auto Increment) - ID duy nhất cho lượt mượn.
+copy_id: INT (FK to Copies.copy_id, NOT NULL) - ID của bản sao sách được mượn.
+user_id: INT (FK to Users.user_id, NOT NULL) - ID của người dùng thực hiện mượn.
+borrow_date: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm bắt đầu mượn.
+due_date: TIMESTAMP (NOT NULL) - Thời điểm sách cần được trả.
+return_date: TIMESTAMP - Thời điểm sách thực tế được trả (có thể NULL nếu chưa trả).
+status_id: INT (FK to BorrowingStatuses.status_id, NOT NULL) - Trạng thái của lượt mượn.
+fine_amount: DECIMAL(10, 2) (Default 0.00) - Số tiền phạt (nếu có).
+handled_by_user_id: INT (FK to Users.user_id) - ID của CTV/Admin xử lý lượt mượn/trả (có thể NULL).
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+16. Bảng ReservationStatuses
+Mục đích: Lưu các trạng thái của lượt đặt trước.
+Các trường:
+status_id: INT (PK, Auto Increment) - ID duy nhất cho trạng thái.
+status_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên trạng thái (ví dụ: 'Pending', 'Ready', 'Cancelled', 'Fulfilled').
+description: TEXT - Mô tả chi tiết về trạng thái.
+17. Bảng Reservations
+Mục đích: Lưu thông tin các lượt đặt mượn sách trước của độc giả.
+Các trường:
+reservation_id: INT (PK, Auto Increment) - ID duy nhất cho lượt đặt trước.
+book_id: INT (FK to Books.book_id, NOT NULL) - ID của đầu sách được đặt trước.
+user_id: INT (FK to Users.user_id, NOT NULL) - ID của người dùng thực hiện đặt trước.
+reservation_date: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm đặt trước.
+expiry_date: TIMESTAMP (NOT NULL) - Thời điểm lượt đặt trước hết hạn nếu sách không được nhận.
+status_id: INT (FK to ReservationStatuses.status_id, NOT NULL) - Trạng thái của lượt đặt trước.
+assigned_copy_id: INT (FK to Copies.copy_id) - ID của bản sao sách được gán cho lượt đặt (có thể NULL ban đầu).
+handled_by_user_id: INT (FK to Users.user_id) - ID của CTV/Admin xử lý lượt đặt trước (có thể NULL).
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+18. Bảng ShiftTypes
+Mục đích: Lưu các loại ca trực cố định.
+Các trường:
+shift_type_id: INT (PK, Auto Increment) - ID duy nhất cho loại ca.
+shift_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên ca (ví dụ: 'Ca sáng', 'Ca chiều').
+start_time: TIME (NOT NULL) - Giờ bắt đầu ca.
+end_time: TIME (NOT NULL) - Giờ kết thúc ca.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+19. Bảng ScheduleStatuses
+Mục đích: Lưu các trạng thái của lịch trực.
+Các trường:
+status_id: INT (PK, Auto Increment) - ID duy nhất cho trạng thái.
+status_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên trạng thái (ví dụ: 'Approved', 'Pending', 'Rejected').
+description: TEXT - Mô tả chi tiết về trạng thái.
+20. Bảng Schedules
+Mục đích: Lưu lịch trực đã đăng ký hoặc được chỉ định cho cộng tác viên.
+Các trường:
+schedule_id: INT (PK, Auto Increment) - ID duy nhất cho lịch trực.
+user_id: INT (FK to Users.user_id, NOT NULL) - ID của cộng tác viên.
+shift_date: DATE (NOT NULL) - Ngày trực.
+shift_type_id: INT (FK to ShiftTypes.shift_type_id, NOT NULL) - ID của loại ca trực.
+status_id: INT (FK to ScheduleStatuses.status_id, NOT NULL) - Trạng thái của lịch trực.
+notes: TEXT - Ghi chú thêm (ví dụ: lý do vắng mặt).
+approved_by_user_id: INT (FK to Users.user_id) - ID của Admin duyệt lịch (có thể NULL).
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+21. Bảng BookReviews
+Mục đích: Lưu đánh giá và nhận xét tổng thể về sách từ độc giả.
+Các trường:
+review_id: INT (PK, Auto Increment) - ID duy nhất cho đánh giá.
+book_id: INT (FK to Books.book_id, NOT NULL) - ID của đầu sách được đánh giá.
+user_id: INT (FK to Users.user_id, NOT NULL) - ID của người dùng thực hiện đánh giá.
+rating: INT (NOT NULL, CHECK (rating >= 1 AND rating <= 5)) - Điểm đánh giá (từ 1 đến 5 sao).
+comment: TEXT - Nội dung nhận xét.
+review_date: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm đánh giá.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+22. Bảng ReviewCriteria
+Mục đích: Lưu các tiêu chí đánh giá sách.
+Các trường:
+criteria_id: INT (PK, Auto Increment) - ID duy nhất cho tiêu chí.
+criteria_name: VARCHAR(100) (NOT NULL, UNIQUE) - Tên tiêu chí (ví dụ: 'Nội dung', 'Hình thức', 'Độ hấp dẫn').
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+23. Bảng ReviewScores
+Mục đích: Lưu điểm đánh giá cho từng tiêu chí của một lượt review cụ thể.
+Các trường:
+score_id: INT (PK, Auto Increment) - ID duy nhất cho điểm tiêu chí.
+review_id: INT (FK to BookReviews.review_id, NOT NULL) - ID của lượt đánh giá tổng thể.
+criteria_id: INT (FK to ReviewCriteria.criteria_id, NOT NULL) - ID của tiêu chí được đánh giá.
+score: INT (NOT NULL, CHECK (score >= 1 AND score <= 5)) - Điểm cho tiêu chí đó (từ 1 đến 5).
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+24. Bảng SuggestionStatuses
+Mục đích: Lưu các trạng thái của đề xuất sách.
+Các trường:
+status_id: INT (PK, Auto Increment) - ID duy nhất cho trạng thái.
+status_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên trạng thái (ví dụ: 'Pending', 'Reviewed', 'Added', 'Rejected').
+description: TEXT - Mô tả chi tiết về trạng thái.
+25. Bảng BookSuggestions
+Mục đích: Lưu các đề xuất sách mới từ độc giả.
+Các trường:
+suggestion_id: INT (PK, Auto Increment) - ID duy nhất cho đề xuất.
+user_id: INT (FK to Users.user_id, NOT NULL) - ID của người dùng gửi đề xuất.
+suggested_title: VARCHAR(255) (NOT NULL) - Tiêu đề sách được đề xuất.
+suggested_author: VARCHAR(255) - Tác giả được đề xuất (có thể NULL).
+suggested_publisher: VARCHAR(255) - Nhà xuất bản được đề xuất (có thể NULL).
+suggestion_notes: TEXT - Ghi chú thêm từ người đề xuất.
+suggestion_date: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm gửi đề xuất.
+status_id: INT (FK to SuggestionStatuses.status_id, NOT NULL) - Trạng thái xử lý đề xuất.
+handled_by_user_id: INT (FK to Users.user_id) - ID của CTV/Admin xử lý đề xuất (có thể NULL).
+handling_notes: TEXT - Ghi chú xử lý từ CTV/Admin.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+26. Bảng Events
+Mục đích: Lưu thông tin các sự kiện diễn ra tại thư viện.
+Các trường:
+event_id: INT (PK, Auto Increment) - ID duy nhất cho sự kiện.
+event_name: VARCHAR(255) (NOT NULL) - Tên sự kiện.
+description: TEXT - Mô tả chi tiết về sự kiện.
+event_date: DATE (NOT NULL) - Ngày diễn ra sự kiện.
+start_time: TIME (NOT NULL) - Giờ bắt đầu sự kiện.
+end_time: TIME - Giờ kết thúc sự kiện (có thể NULL).
+location: VARCHAR(255) - Địa điểm diễn ra sự kiện.
+organizer_user_id: INT (FK to Users.user_id) - Người tổ chức (có thể NULL).
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+27. Bảng SystemConfig
+Mục đích: Lưu các cấu hình chung của hệ thống dưới dạng key-value.
+Các trường:
+config_key: VARCHAR(100) (PK) - Tên khóa cấu hình (ví dụ: 'DEFAULT_BORROW_DAYS').
+config_value: TEXT - Giá trị cấu hình.
+description: TEXT - Mô tả về cấu hình.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+28. Bảng ActionTypes
+Mục đích: Lưu các loại hành động được ghi trong logs.
+Các trường:
+action_type_id: INT (PK, Auto Increment) - ID duy nhất cho loại hành động.
+type_name: VARCHAR(100) (NOT NULL, UNIQUE) - Tên loại hành động (ví dụ: 'Login', 'Logout', 'CreateBook', 'BorrowBook', 'ReturnBook', 'UpdateUser').
+29. Bảng ActivityLogs
+Mục đích: Ghi nhận lịch sử hoạt động của người dùng và hệ thống (hành động chung).
+Các trường:
+log_id: INT (PK, Auto Increment) - ID duy nhất cho log.
+user_id: INT (FK to Users.user_id) - ID người dùng thực hiện hành động (có thể NULL nếu hành động không liên quan đến người dùng cụ thể, ví dụ: hệ thống tự động).
+action_type_id: INT (FK to ActionTypes.action_type_id, NOT NULL) - Loại hành động.
+action_description: TEXT (NOT NULL) - Mô tả chi tiết về hành động.
+resource_type: VARCHAR(50) - Loại tài nguyên bị ảnh hưởng (ví dụ: 'Book', 'User', 'Borrowing').
+resource_id: INT - ID của tài nguyên bị ảnh hưởng (có thể NULL).
+timestamp: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm xảy ra hành động.
+30. Bảng AuditLogs
+Mục đích: Ghi lại các thay đổi dữ liệu quan trọng (UPDATE, DELETE) trên các bảng chính.
+Các trường:
+audit_id: INT (PK, Auto Increment) - ID duy nhất cho audit log.
+user_id: INT (FK to Users.user_id) - Người dùng thực hiện thay đổi (có thể NULL nếu do hệ thống).
+table_name: VARCHAR(100) (NOT NULL) - Tên bảng bị thay đổi.
+record_id: INT (NOT NULL) - ID của bản ghi bị thay đổi trong bảng đó.
+action_type: VARCHAR(10) (NOT NULL, CHECK (action_type IN ('INSERT', 'UPDATE', 'DELETE'))) - Loại thao tác (INSERT, UPDATE, DELETE).
+field_name: VARCHAR(100) - Tên trường bị thay đổi (NULL cho INSERT/DELETE toàn bộ bản ghi).
+old_value: TEXT - Giá trị cũ của trường (NULL cho INSERT).
+new_value: TEXT - Giá trị mới của trường (NULL cho DELETE).
+timestamp: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm xảy ra thay đổi.
+31. Bảng BookHistory
+Mục đích: Ghi lại lịch sử chi tiết các sự kiện liên quan đến từng bản sao sách cụ thể.
+Các trường:
+history_id: INT (PK, Auto Increment) - ID duy nhất cho bản ghi lịch sử.
+copy_id: INT (FK to Copies.copy_id, NOT NULL) - ID của bản sao sách.
+action_type_id: INT (FK to ActionTypes.action_type_id, NOT NULL) - Loại hành động (ví dụ: 'Borrowed', 'Returned', 'MarkedLost', 'MarkedDamaged', 'Relocated').
+user_id: INT (FK to Users.user_id) - Người dùng liên quan đến hành động (người mượn, người trả, CTV xử lý).
+action_date: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm xảy ra hành động.
+notes: TEXT - Ghi chú thêm về hành động.
+related_borrow_id: INT (FK to Borrowings.borrow_id) - Liên kết đến lượt mượn nếu hành động là mượn/trả.
+32. Bảng PenaltyRules
+Mục đích: Lưu trữ các quy tắc tính phí phạt.
+Các trường:
+rule_id: INT (PK, Auto Increment) - ID duy nhất cho quy tắc.
+rule_name: VARCHAR(100) (NOT NULL, UNIQUE) - Tên quy tắc (ví dụ: 'Phạt quá hạn mượn').
+applies_to_table: VARCHAR(50) (NOT NULL) - Bảng mà quy tắc áp dụng (ví dụ: 'Borrowings').
+condition_description: TEXT - Mô tả điều kiện áp dụng phạt (ví dụ: 'status_id = Overdue').
+calculation_method: VARCHAR(50) (NOT NULL) - Phương thức tính (ví dụ: 'PerDay', 'FixedAmount').
+amount: DECIMAL(10, 2) (NOT NULL) - Số tiền phạt.
+unit: VARCHAR(20) - Đơn vị tính (ví dụ: 'VND', 'ngày').
+is_active: BOOLEAN (NOT NULL, Default TRUE) - Quy tắc có đang hoạt động không.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi.
+updated_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP on UPDATE CURRENT_TIMESTAMP) - Thời điểm cập nhật bản ghi gần nhất.
+33. Bảng NotificationTypes
+Mục đích: Lưu các loại thông báo hệ thống.
+Các trường:
+type_id: INT (PK, Auto Increment) - ID duy nhất cho loại thông báo.
+type_name: VARCHAR(100) (NOT NULL, UNIQUE) - Tên loại thông báo (ví dụ: 'BorrowDueReminder', 'ReservationReady', 'ScheduleApproved').
+template: TEXT - Mẫu nội dung thông báo (có thể chứa placeholder).
+34. Bảng NotificationStatuses
+Mục đích: Lưu các trạng thái của thông báo.
+Các trường:
+status_id: INT (PK, Auto Increment) - ID duy nhất cho trạng thái.
+status_name: VARCHAR(50) (NOT NULL, UNIQUE) - Tên trạng thái (ví dụ: 'Pending', 'Sent', 'Failed', 'Read', 'Unread').
+description: TEXT - Mô tả chi tiết về trạng thái.
+35. Bảng Notifications
+Mục đích: Lưu trữ các thông báo cần gửi đến người dùng.
+Các trường:
+notification_id: INT (PK, Auto Increment) - ID duy nhất cho thông báo.
+user_id: INT (FK to Users.user_id, NOT NULL) - Người dùng nhận thông báo.
+type_id: INT (FK to NotificationTypes.type_id, NOT NULL) - Loại thông báo.
+content: TEXT (NOT NULL) - Nội dung thông báo cuối cùng (sau khi điền placeholder).
+status_id: INT (FK to NotificationStatuses.status_id, NOT NULL) - Trạng thái của thông báo.
+delivery_method: VARCHAR(50) (ví dụ: 'Email', 'SMS', 'InApp') - Phương thức gửi.
+related_record_type: VARCHAR(50) - Loại bản ghi liên quan (ví dụ: 'Borrowing', 'Reservation').
+related_record_id: INT - ID của bản ghi liên quan.
+created_at: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tạo bản ghi thông báo.
+sent_at: TIMESTAMP - Thời điểm thông báo thực tế được gửi đi (có thể NULL).
+36. Bảng SearchLogs
+Mục đích: Ghi nhận lịch sử các lượt tìm kiếm của người dùng.
+Các trường:
+search_id: INT (PK, Auto Increment) - ID duy nhất cho lượt tìm kiếm.
+user_id: INT (FK to Users.user_id) - Người dùng thực hiện tìm kiếm (có thể NULL nếu là người dùng ẩn danh).
+query: VARCHAR(255) (NOT NULL) - Chuỗi tìm kiếm.
+timestamp: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm tìm kiếm.
+number_of_results: INT - Số kết quả trả về.
+search_duration_ms: INT - Thời gian tìm kiếm (miliseconds).
+37. Bảng ActionsHandled (Mở rộng)
+Mục đích: Ghi lại lịch sử xử lý chi tiết cho các yêu cầu có quy trình nhiều bước.
+Các trường:
+handled_id: INT (PK, Auto Increment) - ID duy nhất cho bản ghi xử lý.
+request_type: VARCHAR(50) (NOT NULL) - Loại yêu cầu (ví dụ: 'Reservation', 'Schedule', 'BookSuggestion').
+request_id: INT (NOT NULL) - ID của yêu cầu tương ứng trong bảng gốc.
+user_id: INT (FK to Users.user_id, NOT NULL) - Người dùng (CTV/Admin) thực hiện xử lý.
+action_date: TIMESTAMP (NOT NULL, Default CURRENT_TIMESTAMP) - Thời điểm xử lý.
+action_description: TEXT (NOT NULL) - Mô tả hành động xử lý cụ thể (ví dụ: 'Duyệt đặt sách', 'Từ chối lịch trực').
+status_after_action: VARCHAR(50) - Trạng thái của yêu cầu sau khi hành động được thực hiện.
+notes: TEXT - Ghi chú thêm về quá trình xử lý.
+Tổng kết
+Thiết kế chi tiết này cung cấp cấu trúc nền tảng cho cơ sở dữ liệu của hệ thống Quản lý Thư viện Cộng đồng. Việc xác định rõ các bảng, trường, kiểu dữ liệu và mối quan hệ giúp đảm bảo tính toàn vẹn và nhất quán của dữ liệu.
+Trong quá trình triển khai thực tế, bạn sẽ cần lựa chọn hệ quản trị cơ sở dữ liệu phù hợp (PostgreSQL, MySQL, v.v.) và sử dụng các công cụ của hệ quản trị đó để tạo schema, áp dụng các ràng buộc (constraints), và tối ưu hóa hiệu năng bằng cách thêm các chỉ mục (indexes) cần thiết.
+Bước tiếp theo có thể là bắt đầu thiết kế giao diện người dùng (UI/UX) cho các chức năng chính, hoặc xây dựng API cho phép Frontend tương tác với Backend và Cơ sở dữ liệu.
+

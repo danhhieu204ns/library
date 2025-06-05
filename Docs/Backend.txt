@@ -1,0 +1,205 @@
+.
+├── src/
+│   ├── config/
+│   │   ├── index.js            # Xuất các cấu hình (ví dụ: database.js, server.js)
+│   │   ├── database.js         # Cấu hình kết nối MongoDB (sử dụng Mongoose)
+│   │   └── server.js           # Cấu hình server (port, etc.)
+│   │
+│   ├── controllers/            # Xử lý logic request, gọi services
+│   │   ├── userController.js
+│   │   ├── authController.js
+│   │   ├── bookController.js
+│   │   ├── copyController.js
+│   │   ├── borrowingController.js
+│   │   ├── reservationController.js
+│   │   ├── scheduleController.js
+│   │   ├── reportController.js
+│   │   ├── notificationController.js
+│   │   ├── adminController.js
+│   │   ├── eventController.js
+│   │   └── ... (các file controller khác)
+│   │
+│   ├── middlewares/
+│   │   ├── authMiddleware.js     # Middleware xác thực (JWT, etc.)
+│   │   ├── errorMiddleware.js    # Middleware xử lý lỗi tập trung
+│   │   ├── validationMiddleware.js # Middleware cho validation (có thể tích hợp Joi, express-validator)
+│   │   └── ... (các middleware khác)
+│   │
+│   ├── models/                 # Định nghĩa Mongoose Schemas và Models
+│   │   ├── User.js
+│   │   ├── Book.js
+│   │   ├── Copy.js
+│   │   ├── Borrowing.js
+│   │   ├── Reservation.js
+│   │   ├── Schedule.js
+│   │   ├── Review.js
+│   │   ├── Suggestion.js
+│   │   ├── Event.js
+│   │   ├── SystemConfig.js
+│   │   ├── Log.js
+│   │   ├── Notification.js
+│   │   └── ... (các file model khác)
+│   │
+│   ├── routes/                 # Định nghĩa các API routes
+│   │   ├── index.js            # File tổng hợp các routes (router chính)
+│   │   ├── users.js
+│   │   ├── auth.js
+│   │   ├── books.js
+│   │   ├── copies.js
+│   │   ├── borrowings.js
+│   │   ├── reservations.js
+│   │   ├── schedules.js
+│   │   ├── reports.js
+│   │   ├── notifications.js
+│   │   ├── admin.js
+│   │   ├── events.js
+│   │   └── ... (các file route khác cho từng resource)
+│   │
+│   ├── services/               # Chứa business logic, tương tác với models
+│   │   ├── userService.js
+│   │   ├── authService.js
+│   │   ├── borrowingService.js   # Logic mượn/trả phức tạp, tính phạt
+│   │   ├── reservationService.js # Logic cho đặt trước, gán bản sao
+│   │   └── ... (các service khác)
+│   │
+│   ├── validators/             # (Hoặc schemas/) Schemas để validate request data (sử dụng Joi, express-validator)
+│   │   ├── userValidation.js
+│   │   ├── bookValidation.js
+│   │   └── ... (các file validation schema khác)
+│   │
+│   ├── utils/                  # Các hàm tiện ích dùng chung
+│   │   ├── apiFeatures.js      # Tiện ích cho filtering, sorting, pagination
+│   │   ├── logger.js           # Cấu hình logger (ví dụ: Winston)
+│   │   └── ...
+│   │
+│   └── app.js                  # Khởi tạo Express app, gắn middlewares, routes
+│
+├── tests/                      # Thư mục chứa các bài kiểm thử
+│   ├── integration/
+│   │   ├── users.test.js
+│   │   └── ...
+│   ├── unit/
+│   │   ├── userService.test.js
+│   │   └── ...
+│   └── setup.js                # (Tùy chọn) Cấu hình chung cho tests
+│
+├── .env                        # File chứa biến môi trường
+├── .env.example                # File ví dụ cho .env
+├── .gitignore                  # Các file/thư mục bỏ qua khi commit Git
+├── package.json                # Thông tin dự án và dependencies
+├── server.js                   # (Hoặc index.js) Điểm vào chính của ứng dụng, khởi chạy server
+└── Dockerfile                  # (Tùy chọn) File cấu hình Docker
+
+Giải thích các thành phần chính:
+
+/src: Thư mục gốc chứa toàn bộ mã nguồn của ứng dụng.
+
+/config:
+
+database.js: Thiết lập kết nối đến MongoDB sử dụng Mongoose.
+
+server.js: Cấu hình các thông số của server như PORT.
+
+index.js: Thường dùng để export các cấu hình đã được định nghĩa.
+
+/controllers:
+
+Mỗi file controller sẽ chịu trách nhiệm xử lý các request đến một resource cụ thể (ví dụ: userController.js cho các request liên quan đến người dùng).
+
+Controller nhận request, gọi các service tương ứng để xử lý business logic, và sau đó gửi response về cho client.
+
+Tương đương với logic trong các path operation functions của FastAPI endpoints.
+
+/middlewares:
+
+Chứa các hàm middleware của Express.js.
+
+authMiddleware.js: Kiểm tra xác thực người dùng (ví dụ: kiểm tra JWT token).
+
+errorMiddleware.js: Xử lý lỗi một cách tập trung, giúp code sạch sẽ hơn trong controllers.
+
+validationMiddleware.js: Có thể là một middleware chung để chạy validation schemas (từ thư mục /validators) trước khi request đến controller.
+
+/models:
+
+Định nghĩa các Mongoose Schemas và Models. Mỗi file tương ứng với một collection trong MongoDB.
+
+Ví dụ: User.js sẽ định nghĩa schema cho collection users.
+
+Thay thế cho thư mục models chứa SQLAlchemy models trong cấu trúc FastAPI.
+
+/routes:
+
+Định nghĩa các API endpoints. Mỗi file (users.js, books.js,...) sẽ chứa các route cho một resource cụ thể, sử dụng Express Router.
+
+index.js trong thư mục này thường dùng để gộp tất cả các router con và export một router chính để app.js sử dụng.
+
+Tương đương với app/api/v1/endpoints và app/api/v1/routers.py.
+
+/services:
+
+Chứa business logic của ứng dụng. Services được gọi bởi controllers và sẽ tương tác với models để thực hiện các thao tác dữ liệu (CRUD) hoặc các logic phức tạp khác.
+
+Giúp tách biệt business logic khỏi controller, làm cho controller gọn gàng hơn và logic dễ tái sử dụng, dễ test hơn.
+
+Tương đương với thư mục services và crud trong cấu trúc FastAPI.
+
+/validators (hoặc có thể đặt tên là /schemas):
+
+Chứa các schema dùng để validate dữ liệu đầu vào của request (body, params, query).
+
+Thường sử dụng các thư viện như Joi hoặc express-validator.
+
+Thay thế cho thư mục schemas chứa Pydantic schemas trong cấu trúc FastAPI.
+
+/utils:
+
+Chứa các hàm tiện ích, helper functions có thể được sử dụng ở nhiều nơi trong ứng dụng (ví dụ: hàm format dữ liệu, hàm tạo token, logger...).
+
+app.js:
+
+File trung tâm của ứng dụng Express.
+
+Khởi tạo Express app (const app = express();).
+
+Gắn các middleware cần thiết (ví dụ: express.json(), cors, custom middlewares).
+
+Gắn router chính từ /routes/index.js.
+
+Xử lý các route không tìm thấy (404) và middleware xử lý lỗi cuối cùng.
+
+/tests: Thư mục chứa các bài test (unit test, integration test).
+
+.env: File chứa các biến môi trường (connection string của MongoDB, secret key cho JWT, port,...). Không commit file này lên Git.
+
+.env.example: File mẫu cho .env, liệt kê các biến môi trường cần thiết.
+
+package.json: Quản lý thông tin dự án, scripts (start, dev, test,...) và các dependencies (Express, Mongoose, Joi, etc.).
+
+server.js (hoặc index.js ở thư mục gốc):
+
+File này sẽ import app từ src/app.js và database.js từ src/config/database.js.
+
+Thực hiện kết nối đến MongoDB.
+
+Khởi chạy HTTP server (app.listen(...)).
+
+Dockerfile: (Tùy chọn) Nếu bạn muốn đóng gói ứng dụng bằng Docker.
+
+So sánh với cấu trúc FastAPI/PostgreSQL:
+
+ORM/ODM: SQLAlchemy (PostgreSQL) được thay thế bằng Mongoose (MongoDB).
+
+Framework: FastAPI được thay thế bằng Express.js.
+
+Validation: Pydantic schemas được thay thế bằng các thư viện như Joi hoặc express-validator.
+
+Async Handling: Express.js cũng hỗ trợ async/await cho các route handlers và middlewares, tương tự FastAPI.
+
+Dependency Injection: FastAPI có hệ thống Dependency Injection mạnh mẽ. Trong Express, bạn có thể tự implement các pattern tương tự hoặc sử dụng các thư viện hỗ trợ, nhưng nó không tích hợp sẵn như FastAPI.
+
+Controllers vs. Endpoints: Logic trong các path operation functions của FastAPI (thường nằm trong endpoints files) sẽ tương đương với các hàm trong controllers của Express.
+
+CRUD Layer: Thư mục crud trong FastAPI có thể được tích hợp vào services trong Express, hoặc services sẽ gọi trực tiếp các phương thức của Mongoose models.
+
+Cấu trúc này cũng hướng đến sự rõ ràng, dễ bảo trì và mở rộng, tương tự như mục tiêu của cấu trúc FastAPI bạn đã cung cấp.

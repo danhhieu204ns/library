@@ -1,0 +1,173 @@
+Phác thảo Thiết kế Giao diện người dùng (UI/UX)
+Tài liệu này phác thảo các bước và nội dung cần thiết để thiết kế giao diện người dùng (UI) và trải nghiệm người dùng (UX) cho website Quản lý Thư viện Cộng đồng, dựa trên danh sách các trang giao diện và đặc tả API đã xác định.
+Thiết kế UI/UX chi tiết sẽ biến danh sách các trang thành hình ảnh trực quan về cách người dùng tương tác với hệ thống, là cơ sở để phát triển Frontend.
+1. Quy trình Thiết kế UI/UX
+Quy trình đề xuất bao gồm các bước chính:
+Xác định Luồng người dùng (User Flows): Vẽ sơ đồ các bước mà người dùng thực hiện để hoàn thành một tác vụ cụ thể (ví dụ: Tìm kiếm sách -> Xem chi tiết -> Đặt mượn). Chúng ta đã phác thảo luồng hoạt động, bước này sẽ chi tiết hóa luồng trên giao diện.
+Thiết kế Wireframes: Tạo bản phác thảo cấu trúc cơ bản của từng trang, xác định vị trí các thành phần chính (header, sidebar, nội dung, footer, nút, form...). Wireframes tập trung vào bố cục và chức năng, không chú trọng hình ảnh.
+Thiết kế Mockups: Dựa trên wireframes, tạo các bản thiết kế có màu sắc, hình ảnh, font chữ và các yếu tố trực quan khác. Mockups thể hiện giao diện cuối cùng sẽ trông như thế nào.
+Thiết kế Prototype (Tùy chọn): Tạo các bản tương tác từ mockups để mô phỏng luồng di chuyển giữa các trang và tương tác với các thành phần. Hữu ích cho việc kiểm thử sớm với người dùng.
+2. Các Yếu tố cần quan tâm khi Thiết kế
+Luồng người dùng và Phân cấp thông tin: Đảm bảo người dùng dễ dàng di chuyển giữa các trang và tìm thấy thông tin cần thiết. Tổ chức nội dung trên mỗi trang theo mức độ quan trọng.
+Tính nhất quán: Sử dụng cùng một bộ quy tắc thiết kế (màu sắc, font chữ, icon, kiểu nút, form...) trên toàn bộ website.
+Phản hồi trực quan: Cung cấp phản hồi rõ ràng cho người dùng khi họ thực hiện một hành động (ví dụ: nút chuyển trạng thái khi click, thông báo thành công/thất bại).
+Thiết kế Responsive (UC70): Đảm bảo giao diện tự động điều chỉnh để hiển thị tốt trên các kích thước màn hình khác nhau (desktop, tablet, mobile).
+Hỗ trợ tiếp cận (Accessibility - UC71): Thiết kế để người dùng khuyết tật có thể dễ dàng sử dụng (ví dụ: điều hướng bằng bàn phím, hỗ trợ trình đọc màn hình, độ tương phản màu sắc cao).
+Trạng thái khác nhau: Thiết kế cho các trạng thái khác nhau của cùng một thành phần (ví dụ: nút "Đặt mượn" khi sách hết, khi sách có sẵn; form nhập liệu khi hợp lệ, khi có lỗi).
+Thông báo và Xác nhận: Thiết kế cách hiển thị thông báo hệ thống (thành công, lỗi, cảnh báo) và các hộp thoại xác nhận.
+3. Phác thảo Thiết kế cho từng Trang giao diện
+Dựa trên danh sách trang đã đề xuất, đây là các yếu tố chính cần tập trung thiết kế cho mỗi nhóm trang:
+3.1. Trang công khai (Public/Guest Pages)
+Trang chủ (Homepage):
+Mục đích: Thu hút người dùng, cung cấp thông tin tổng quan và điểm truy cập chính.
+Các phần chính: Header (logo, navigation - Tìm kiếm, Đăng nhập, Đăng ký), Banner/Hero section (hình ảnh/thông điệp về thư viện), Phần giới thiệu ngắn, Các khối hiển thị sách nổi bật/mới/phổ biến (UC41), Danh sách/Lịch sự kiện sắp tới (UC72), Giờ mở cửa (UC32), Footer (liên hệ, liên kết hữu ích).
+Tương tác: Click vào sách/sự kiện để xem chi tiết, click nút Đăng nhập/Đăng ký, sử dụng thanh tìm kiếm.
+Trang Tìm kiếm sách (Book Search Page):
+Mục đích: Cho phép người dùng tìm và lọc sách.
+Các phần chính: Thanh tìm kiếm (input text), Các bộ lọc (thể loại, tác giả, ngôn ngữ, tag, có sẵn/đang mượn - dựa trên API GET /books Query Params), Khu vực hiển thị kết quả tìm kiếm (danh sách sách), Phân trang.
+Hiển thị kết quả: Mỗi mục kết quả cần hiển thị ảnh bìa, tiêu đề, tác giả, thể loại, trạng thái (có sẵn/đang mượn), số lượng bản sao có sẵn, điểm đánh giá trung bình.
+Tương tác: Nhập từ khóa, chọn bộ lọc, click vào mục kết quả để xem chi tiết, click nút phân trang.
+Trang Chi tiết sách (Book Detail Page):
+Mục đích: Cung cấp thông tin đầy đủ về một đầu sách.
+Các phần chính: Thông tin sách (ảnh bìa lớn, tiêu đề, tác giả, nhà xuất bản, năm xuất bản, ISBN, thể loại, ngôn ngữ, mô tả), Danh sách các bản sao (hiển thị copy_id, vị trí, trạng thái - có sẵn, đang mượn, hỏng, mất - và hạn trả nếu đang mượn) (UC14), Nút "Đặt mượn" (chỉ hiển thị khi sách hết bản sao có sẵn và người dùng đã đăng nhập là Độc giả) (UC20), Phần Đánh giá & Nhận xét (hiển thị điểm trung bình, số lượt đánh giá, danh sách các nhận xét - có phân trang) (UC15), Form gửi đánh giá mới (chỉ hiển thị khi người dùng đã đăng nhập là Độc giả và chưa đánh giá sách này).
+Tương tác: Đọc thông tin, xem danh sách bản sao, nhấn "Đặt mượn", xem các đánh giá, gửi đánh giá mới.
+Trang Đăng ký (Registration Page):
+Mục đích: Thu thập thông tin để tạo tài khoản mới.
+Các phần chính: Form đăng ký (các trường nhập liệu: username, password, email, full_name, phone_number, address), Nút "Đăng ký", Liên kết đến trang Đăng nhập.
+Tương tác: Nhập dữ liệu, nhấn nút, hiển thị thông báo lỗi validation hoặc lỗi từ Backend.
+Trang Đăng nhập (Login Page):
+Mục đích: Cho phép người dùng truy cập vào tài khoản.
+Các phần chính: Form đăng nhập (các trường nhập liệu: username/email, password), Nút "Đăng nhập", Liên kết "Quên mật khẩu" (nếu có), Liên kết đến trang Đăng ký.
+Tương tác: Nhập dữ liệu, nhấn nút, hiển thị thông báo lỗi (sai thông tin, tài khoản bị khóa).
+Trang Giới thiệu/Thông tin về thư viện (About Us Page):
+Mục đích: Cung cấp thông tin tĩnh.
+Các phần chính: Văn bản giới thiệu, lịch sử, sứ mệnh, thông tin liên hệ, bản đồ (tùy chọn).
+Trang Sự kiện (Events Page):
+Mục đích: Hiển thị danh sách các sự kiện.
+Các phần chính: Danh sách sự kiện (hiển thị tên, ngày, giờ, địa điểm, mô tả ngắn), Bộ lọc (theo ngày, loại sự kiện - nếu có), Phân trang.
+Tương tác: Click vào sự kiện để xem chi tiết.
+3.2. Trang dành cho Độc giả (Reader Pages)
+Yêu cầu đăng nhập vai trò Độc giả. Cần có Sidebar hoặc Navigation riêng cho các chức năng của Độc giả.
+Dashboard Độc giả (Reader Dashboard):
+Mục đích: Tổng quan về tài khoản và hoạt động mượn trả.
+Các phần chính: Thông tin chào mừng, Các khối/widget hiển thị: Sách đang mượn (số lượng, sách sắp quá hạn), Sách đã đặt trước (số lượng, sách đã sẵn sàng), Thông báo chưa đọc (số lượng, danh sách tóm tắt).
+Tương tác: Click vào các khối/widget để đi đến trang chi tiết tương ứng.
+Trang Thông tin cá nhân (Profile Page):
+Mục đích: Xem và cập nhật thông tin cá nhân.
+Các phần chính: Hiển thị thông tin người dùng (username, full_name, email, phone, address, ngày đăng ký, vai trò, trạng thái), Form chỉnh sửa thông tin (cho phép cập nhật email, full_name, phone, address), Nút "Lưu thay đổi", (Tùy chọn) Form thay đổi mật khẩu.
+Tương tác: Chỉnh sửa form, nhấn nút Lưu, hiển thị thông báo thành công/lỗi.
+Trang Sách đang mượn (Currently Borrowed Books):
+Mục đích: Liệt kê các sách độc giả đang mượn.
+Các phần chính: Danh sách sách đang mượn (hiển thị ảnh bìa, tiêu đề, tác giả, ngày mượn, hạn trả, phí phạt hiện tại - nếu quá hạn), Phân trang, Sắp xếp.
+Tương tác: Xem thông tin, có thể liên kết đến trang chi tiết sách.
+Trang Lịch sử mượn trả (Borrowing History):
+Mục đích: Xem lại tất cả các lượt mượn trả đã hoàn thành.
+Các phần chính: Danh sách lịch sử mượn trả (hiển thị thông tin tương tự trang sách đang mượn, thêm ngày trả), Bộ lọc (theo khoảng thời gian), Phân trang, Sắp xếp.
+Tương tác: Xem thông tin, sử dụng bộ lọc.
+Trang Sách đã đặt trước (Reserved Books):
+Mục đích: Liệt kê các sách đã đặt trước.
+Các phần chính: Danh sách sách đã đặt trước (hiển thị ảnh bìa, tiêu đề, tác giả, ngày đặt, trạng thái - chờ xử lý, đã sẵn sàng, đã hủy, đã mượn), Hạn giữ (nếu trạng thái là đã sẵn sàng), Nút "Hủy đặt mượn" (nếu trạng thái cho phép hủy).
+Tương tác: Xem thông tin, nhấn nút Hủy đặt mượn.
+Trang Đề xuất sách mới (Suggest Book Page):
+Mục đích: Gửi đề xuất sách.
+Các phần chính: Form đề xuất (các trường nhập liệu: tiêu đề, tác giả, nhà xuất bản, ghi chú), Nút "Gửi đề xuất".
+Tương tác: Nhập dữ liệu, nhấn nút, hiển thị thông báo thành công/lỗi.
+Trang Thông báo của tôi (My Notifications):
+Mục đích: Xem danh sách thông báo từ hệ thống.
+Các phần chính: Danh sách thông báo (hiển thị nội dung, thời gian, trạng thái - đã đọc/chưa đọc), Bộ lọc (theo trạng thái, loại thông báo), Nút "Đánh dấu tất cả là đã đọc", Phân trang.
+Tương tác: Đọc thông báo, đánh dấu đã đọc.
+Trang Đăng ký sự kiện (Event Registration - nếu có):
+Mục đích: Xem sự kiện và đăng ký.
+Các phần chính: Tương tự trang Sự kiện công khai, thêm nút "Đăng ký tham gia" (khi chưa đăng ký) hoặc "Hủy đăng ký" (khi đã đăng ký).
+Tương tác: Nhấn nút Đăng ký/Hủy đăng ký.
+3.3. Trang dành cho Cộng tác viên (CTV Pages)
+Yêu cầu đăng nhập vai trò Cộng tác viên. Cần có Sidebar hoặc Navigation riêng cho các chức năng của CTV.
+Dashboard Cộng tác viên (CTV Dashboard):
+Mục đích: Tổng quan các tác vụ quản lý.
+Các phần chính: Các khối/widget hiển thị: Số lượt mượn/trả cần xử lý, Số lượt đặt trước chờ xử lý, Lịch trực sắp tới của bản thân, Thông báo chưa đọc.
+Tương tác: Click vào các khối/widget để đi đến trang xử lý tương ứng.
+Trang Xử lý mượn sách (Borrowing Process Page):
+Mục đích: Thực hiện thao tác mượn sách.
+Các phần chính: Form nhập/quét thông tin người dùng (ID/username), Form nhập/quét thông tin bản sao sách (barcode), Khu vực hiển thị thông tin người dùng và sách sau khi nhập/quét, Nút "Xác nhận mượn", (Tùy chọn) Chức năng mượn hàng loạt.
+Tương tác: Nhập/quét dữ liệu, nhấn nút Xác nhận, hiển thị kết quả/lỗi.
+Trang Xử lý trả sách (Return Process Page):
+Mục đích: Thực hiện thao tác trả sách.
+Các phần chính: Form nhập/quét thông tin bản sao sách (barcode), Khu vực hiển thị thông tin sách và lượt mượn liên quan (bao gồm hạn trả, phí phạt nếu có), Nút "Xác nhận trả", (Tùy chọn) Chức năng trả hàng loạt.
+Tương tác: Nhập/quét dữ liệu, nhấn nút Xác nhận, hiển thị kết quả/lỗi, thông báo phí phạt.
+Trang Quản lý bản sao sách (Copy Management):
+Mục đích: Quản lý chi tiết từng bản sao.
+Các phần chính: Thanh tìm kiếm/Bộ lọc bản sao (theo sách, trạng thái, vị trí, barcode), Danh sách bản sao (hiển thị thông tin chi tiết, bao gồm cả vị trí và trạng thái), Nút "Thêm bản sao", Nút "Sửa" / "Xóa" bản sao (trên từng mục danh sách), Form Thêm/Sửa bản sao (các trường: book_id, location_id, status_id, barcode).
+Tương tác: Tìm kiếm, lọc, thêm, sửa, xóa bản sao.
+Trang Quản lý đặt trước (Reservation Management):
+Mục đích: Xem và xử lý các lượt đặt trước.
+Các phần chính: Danh sách lượt đặt trước (hiển thị thông tin người đặt, sách, ngày đặt, trạng thái), Bộ lọc (theo trạng thái, sách, người dùng), Phân trang, Nút "Gán bản sao" (khi trạng thái là Pending và có bản sao Available), Nút "Hủy đặt trước".
+Tương tác: Xem danh sách, lọc, gán bản sao, hủy đặt trước.
+Trang Đăng ký lịch trực (Schedule Registration):
+Mục đích: Đăng ký lịch làm việc.
+Các phần chính: Lịch (calendar view) cho phép chọn ngày, Combobox chọn loại ca trực, Nút "Đăng ký", Hiển thị lịch đã đăng ký (trạng thái chờ duyệt).
+Tương tác: Chọn ngày, chọn ca, nhấn đăng ký.
+Trang Xem lịch trực (View Schedule):
+Mục đích: Xem lịch trực đã duyệt.
+Các phần chính: Lịch (calendar view) hiển thị các ca trực đã được duyệt, Bộ lọc (theo tuần/tháng).
+Tương tác: Xem lịch, chuyển đổi chế độ xem.
+Trang Quản lý đề xuất sách (Book Suggestion Management):
+Mục đích: Xem xét đề xuất sách.
+Các phần chính: Danh sách đề xuất (hiển thị thông tin đề xuất, người đề xuất, ngày, trạng thái), Bộ lọc (theo trạng thái), Phân trang, Nút "Xem chi tiết", Nút "Xử lý" (Duyệt/Từ chối/Đã thêm).
+Tương tác: Xem danh sách, lọc, xử lý đề xuất.
+Trang Quản lý sự kiện (Event Management - nếu được phân quyền):
+Mục đích: Quản lý sự kiện.
+Các phần chính: Danh sách sự kiện, Nút "Thêm sự kiện", Nút "Sửa" / "Xóa" sự kiện, Form Thêm/Sửa sự kiện (các trường: tên, mô tả, ngày, giờ, địa điểm, người tổ chức).
+Tương tác: Xem danh sách, thêm, sửa, xóa sự kiện.
+3.4. Trang dành cho Admin (Admin Pages)
+Yêu cầu đăng nhập vai trò Admin. Cần có Sidebar hoặc Navigation riêng cho các chức năng của Admin. Admin có quyền truy cập các trang của CTV và Độc giả.
+Dashboard Admin (Admin Dashboard):
+Mục đích: Tổng quan toàn diện về hệ thống.
+Các phần chính: Các khối/widget hiển thị các chỉ số quan trọng (từ API /dashboard/summary): Số sách đang mượn, Số lượt đặt trước chờ xử lý, Số đề xuất sách mới, Số CTV trực sắp tới, Số người dùng mới đăng ký gần đây, Tổng số sách, Tổng số người dùng... Các biểu đồ thống kê tổng quan (từ API /reports/book-stats, /reports/user-borrowing-stats).
+Tương tác: Click vào các khối/widget/biểu đồ để đi đến trang chi tiết.
+Trang Quản lý người dùng (User Management):
+Mục đích: Quản lý tài khoản người dùng.
+Các phần chính: Thanh tìm kiếm/Bộ lọc (theo vai trò, trạng thái), Danh sách người dùng (hiển thị thông tin cơ bản, vai trò, trạng thái), Nút "Thêm người dùng", Nút "Sửa" / "Xóa" người dùng (trên từng mục danh sách), Form Thêm/Sửa người dùng (các trường: tương tự form đăng ký, thêm vai trò, trạng thái).
+Tương tác: Tìm kiếm, lọc, thêm, sửa, xóa người dùng, quản lý vai trò/trạng thái.
+Trang Quản lý sách (Book Management):
+Mục đích: Quản lý thông tin đầu sách.
+Các phần chính: Thanh tìm kiếm/Bộ lọc, Danh sách đầu sách, Nút "Thêm sách", Nút "Sửa" / "Xóa" sách, Form Thêm/Sửa sách (các trường: tiêu đề, tác giả, ISBN, ...).
+Tương tác: Tương tự trang Quản lý bản sao của CTV, thêm chức năng quản lý đầu sách.
+Trang Quản lý bản sao sách (Copy Management): Tương tự trang của CTV.
+Trang Quản lý mượn trả (Borrowing/Return Management): Tương tự trang của CTV.
+Trang Quản lý đặt trước (Reservation Management): Tương tự trang của CTV.
+Trang Quản lý lịch trực của CTV (CTV Schedule Management):
+Mục đích: Duyệt lịch và chỉ định lịch.
+Các phần chính: Lịch (calendar view) hiển thị lịch trực của tất cả CTV, Bộ lọc (theo CTV, trạng thái, khoảng ngày), Danh sách lịch trực chờ duyệt (hiển thị thông tin CTV, ngày, ca), Nút "Duyệt" / "Từ chối" (trên từng mục chờ duyệt), Nút "Chỉ định lịch trực", Form chỉ định lịch trực (chọn CTV, ngày, ca).
+Tương tác: Xem lịch, lọc, duyệt/từ chối lịch CTV đăng ký, chỉ định lịch mới.
+Trang Quản lý danh mục (Category Management):
+Mục đích: Quản lý các bảng danh mục.
+Các phần chính: Menu hoặc Tab để chọn loại danh mục (Thể loại, Ngôn ngữ, Nhà xuất bản, Tags, Loại ca trực, Trạng thái người dùng, Trạng thái bản sao, ...), Danh sách các mục trong danh mục đã chọn, Nút "Thêm mới", Nút "Sửa" / "Xóa", Form Thêm/Sửa mục.
+Tương tác: Chọn danh mục, xem danh sách, thêm, sửa, xóa mục.
+Trang Quản lý cấu hình hệ thống (System Configuration):
+Mục đích: Cập nhật các tham số cấu hình.
+Các phần chính: Danh sách các cấu hình (key-value) từ bảng SystemConfig, Form chỉnh sửa giá trị cấu hình, Nút "Lưu cấu hình".
+Tương tác: Chỉnh sửa giá trị, nhấn lưu.
+Trang Quản lý đề xuất sách (Book Suggestion Management): Tương tự trang của CTV.
+Trang Quản lý sự kiện (Event Management): Tương tự trang của CTV.
+Trang Báo cáo & Thống kê (Reports & Statistics):
+Mục đích: Xem báo cáo chi tiết và xuất tệp.
+Các phần chính: Menu hoặc Tab để chọn loại báo cáo (Thống kê sách, Top sách, Hoạt động mượn độc giả, Lịch sử trực CTV), Các bộ lọc và tùy chọn cho báo cáo đã chọn, Khu vực hiển thị kết quả báo cáo (bảng, biểu đồ), Nút "Xuất báo cáo" (chọn định dạng).
+Tương tác: Chọn báo cáo, áp dụng bộ lọc, xem kết quả, xuất báo cáo.
+Trang Nhật ký hoạt động (Activity Logs):
+Mục đích: Xem lịch sử hoạt động chung.
+Các phần chính: Danh sách log hoạt động (hiển thị thời gian, người dùng, loại hành động, mô tả, tài nguyên liên quan), Bộ lọc (theo người dùng, loại hành động, khoảng thời gian), Phân trang.
+Tương tác: Xem danh sách, lọc.
+Trang Nhật ký kiểm toán (Audit Logs):
+Mục đích: Xem lịch sử thay đổi dữ liệu quan trọng.
+Các phần chính: Danh sách log audit (hiển thị thời gian, người dùng, bảng, bản ghi, loại thao tác, trường, giá trị cũ/mới), Bộ lọc (theo người dùng, bảng, loại thao tác, khoảng thời gian), Phân trang.
+Tương tác: Xem danh sách, lọc.
+Trang Quản lý quy tắc phạt (Penalty Rules Management):
+Mục đích: Quản lý các quy tắc tính phí phạt.
+Các phần chính: Danh sách quy tắc phạt, Nút "Thêm quy tắc", Nút "Sửa" / "Xóa", Form Thêm/Sửa quy tắc (các trường: tên, bảng áp dụng, điều kiện, phương thức tính, số tiền, đơn vị, trạng thái hoạt động).
+Tương tác: Xem danh sách, thêm, sửa, xóa quy tắc.
+4. Công cụ Thiết kế UI/UX
+Bạn có thể sử dụng các công cụ sau để tạo wireframes và mockups:
+Wireframing: Balsamiq, Sketch (với plugin), Figma (với plugin), Miro, Excalidraw.
+Mockup/Prototyping: Figma, Sketch, Adobe XD, InVision.
+Việc tạo ra các bản thiết kế trực quan sẽ giúp bạn và bất kỳ ai tham gia dự án có cái nhìn rõ ràng về sản phẩm cuối cùng và là tài liệu hướng dẫn cho quá trình phát triển Frontend.
+

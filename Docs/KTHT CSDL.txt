@@ -1,0 +1,149 @@
+Kế hoạch sơ bộ Kiến trúc Hệ thống và Cơ sở dữ liệu cho Website Quản lý Thư viện Cộng đồng
+Dựa trên danh sách chức năng đã xác định và các gợi ý cải tiến, chúng ta sẽ phác thảo kiến trúc hệ thống và thiết kế cơ sở dữ liệu ban đầu.
+1. Kiến trúc Hệ thống (System Architecture)
+Chúng ta có thể áp dụng kiến trúc Client-Server phổ biến, trong đó:
+Client (Frontend): Giao diện người dùng mà độc giả và cộng tác viên tương tác thông qua trình duyệt web. Phần này sẽ xử lý việc hiển thị thông tin, thu thập dữ liệu nhập từ người dùng và gửi yêu cầu đến Backend.
+Công nghệ gợi ý: HTML, CSS, JavaScript (với các framework/library như React, Vue.js, Angular).
+Server (Backend): Xử lý logic nghiệp vụ của hệ thống, tương tác với cơ sở dữ liệu, xử lý các yêu cầu từ Frontend và trả về kết quả.
+Công nghệ gợi ý: Python (Django, Flask), Node.js (Express), Java (Spring), PHP (Laravel).
+Database: Nơi lưu trữ toàn bộ dữ liệu của hệ thống (thông tin sách, người dùng, lịch mượn/trả, lịch trực, v.v.).
+Hệ quản trị cơ sở dữ liệu gợi ý: PostgreSQL, MySQL, MongoDB.
+API (Application Programming Interface): Giao diện kết nối giữa Frontend và Backend, định nghĩa cách Frontend gửi yêu cầu và nhận dữ liệu từ Backend.
+External Services (Dịch vụ bên ngoài - Mở rộng): Có thể tích hợp với các dịch vụ gửi email (ví dụ: SendGrid, Mailgun) hoặc SMS để gửi thông báo, hoặc các API dữ liệu sách công cộng (như đã đề cập trong chức năng UC17).
+codelearn.io
+2. Thiết kế Cơ sở dữ liệu (Database Design)
+Đây là phác thảo các bảng (tables) chính và các mối quan hệ trong cơ sở dữ liệu. Cần chi tiết hóa các trường (fields) và ràng buộc sau này.
+Bảng Users: Lưu thông tin người dùng (độc giả, cộng tác viên, admin).
+Các trường chính: user_id (khóa chính), username, password_hash, email, full_name, role_id (khóa ngoại đến bảng Roles), registration_date, status_id (khóa ngoại đến bảng UserStatuses), created_at, updated_at.
+Bảng Roles: Lưu danh sách các vai trò người dùng.
+Các trường chính: role_id (khóa chính), role_name (Admin, CTV, DocGia), created_at, updated_at.
+Bảng UserRoles: Bảng liên kết nhiều-nhiều nếu một người dùng có thể có nhiều vai trò.
+Các trường chính: user_id (FK to Users), role_id (FK to Roles), PRIMARY KEY (user_id, role_id).
+Bảng UserStatuses: Lưu các trạng thái của người dùng (ví dụ: Active, Inactive, Banned).
+Các trường chính: status_id (khóa chính), status_name, description.
+Bảng Books: Lưu thông tin chi tiết về sách.
+Các trường chính: book_id (khóa chính), title, author, publisher, publication_year, isbn, genre_id (khóa ngoại đến bảng Genres), language_id (khóa ngoại đến bảng Languages), description, total_copies, available_copies, cover_image_url (URL ảnh bìa sách), created_at, updated_at.
+Bảng Genres: Lưu danh mục thể loại sách.
+Các trường chính: genre_id (khóa chính), genre_name, created_at, updated_at.
+Bảng Languages: Lưu danh mục ngôn ngữ sách.
+Các trường chính: language_id (khóa chính), language_name.
+Bảng Tags: Lưu danh sách các thẻ/chủ đề cho sách.
+Các trường chính: tag_id (khóa chính), tag_name, created_at, updated_at.
+Bảng BookTags: Bảng liên kết nhiều-nhiều giữa Books và Tags.
+Các trường chính: book_id (FK to Books), tag_id (FK to Tags), PRIMARY KEY (book_id, tag_id).
+Bảng Copies: Lưu thông tin từng bản sao cụ thể của một đầu sách.
+Các trường chính: copy_id (khóa chính), book_id (khóa ngoại đến bảng Books), location_id (khóa ngoại đến bảng BookLocations), status_id (khóa ngoại đến bảng CopyStatuses), created_at, updated_at.
+Lưu ý: Bảng này giúp quản lý chi tiết từng bản sách vật lý, đặc biệt khi có nhiều bản sao cho cùng một đầu sách.
+Bảng CopyStatuses: Lưu các trạng thái của bản sách (ví dụ: Available, Borrowed, Reserved, Lost, Damaged).
+Các trường chính: status_id (khóa chính), status_name, description.
+Bảng BookLocations: Lưu vị trí cụ thể của sách trong thư viện.
+Các trường chính: location_id (khóa chính), shelf_number, row_number, level_number, created_at, updated_at.
+Lưu ý: Bảng này giờ chỉ lưu thông tin vị trí chung, liên kết với Copies để xác định bản sách nào ở vị trí nào.
+Bảng Borrowings: Lưu thông tin các lượt mượn sách.
+Các trường chính: borrow_id (khóa chính), copy_id (khóa ngoại đến bảng Copies), user_id (khóa ngoại đến bảng Users), borrow_date, due_date, return_date, status_id (khóa ngoại đến bảng BorrowingStatuses), fine_amount, handled_by_user_id (khóa ngoại đến bảng Users - ghi nhận CTV/Admin xử lý), created_at, updated_at.
+Lưu ý: Sử dụng copy_id để theo dõi bản sách cụ thể được mượn.
+Bảng BorrowingStatuses: Lưu các trạng thái của lượt mượn (ví dụ: Borrowed, Returned, Overdue).
+Các trường chính: status_id (khóa chính), status_name, description.
+Bảng Reservations: Lưu thông tin các lượt đặt mượn trước.
+Các trường chính: reservation_id (khóa chính), book_id (khóa ngoại đến bảng Books), user_id (khóa ngoại đến bảng Users), reservation_date, expiry_date, status_id (khóa ngoại đến bảng ReservationStatuses), assigned_copy_id (khóa ngoại đến bảng Copies - bản sách được gán cho lượt đặt), handled_by_user_id (khóa ngoại đến bảng Users - ghi nhận CTV/Admin xử lý), created_at, updated_at.
+Lưu ý: Sử dụng book_id cho việc đặt chung đầu sách, và có thể thêm assigned_copy_id khi có bản sách sẵn sàng.
+Bảng ReservationStatuses: Lưu các trạng thái của lượt đặt trước (ví dụ: Pending, Ready, Cancelled, Fulfilled).
+Các trường chính: status_id (khóa chính), status_name, description.
+Bảng ShiftTypes: Lưu các loại ca trực (ví dụ: Sáng, Chiều, Tối).
+Các trường chính: shift_type_id (khóa chính), shift_name, start_time, end_time, created_at, updated_at.
+Bảng Schedules: Lưu lịch trực của cộng tác viên.
+Các trường chính: schedule_id (khóa chính), user_id (khóa ngoại đến bảng Users - chỉ CTV), shift_date, shift_type_id (khóa ngoại đến bảng ShiftTypes), status_id (khóa ngoại đến bảng ScheduleStatuses), created_at, updated_at.
+Lưu ý: Liên kết với ShiftTypes để định nghĩa ca trực.
+Bảng ScheduleStatuses: Lưu các trạng thái của lịch trực (ví dụ: Approved, Pending, Rejected).
+Các trường chính: status_id (khóa chính), status_name, description.
+Bảng BookReviews: Lưu đánh giá và nhận xét về sách.
+Các trường chính: review_id (khóa chính), book_id (khóa ngoại đến bảng Books), user_id (khóa ngoại đến bảng Users), rating (1-5 sao), comment, review_date, created_at, updated_at.
+Bảng ReviewCriteria: Lưu các tiêu chí đánh giá sách (ví dụ: Nội dung, Hình thức).
+Các trường chính: criteria_id (khóa chính), criteria_name, created_at, updated_at.
+Bảng ReviewScores: Lưu điểm đánh giá cho từng tiêu chí của một lượt review.
+Các trường chính: score_id (khóa chính), review_id (khóa ngoại đến bảng BookReviews), criteria_id (khóa ngoại đến bảng ReviewCriteria), score (điểm cho tiêu chí đó), created_at, updated_at.
+Bảng BookSuggestions: Lưu các đề xuất sách mới từ độc giả.
+Các trường chính: suggestion_id (khóa chính), user_id (khóa ngoại đến bảng Users), suggested_title, suggested_author, suggestion_date, status_id (khóa ngoại đến bảng SuggestionStatuses), created_at, updated_at.
+Bảng SuggestionStatuses: Lưu các trạng thái của đề xuất sách (ví dụ: Pending, Reviewed, Added, Rejected).
+Các trường chính: status_id (khóa chính), status_name, description.
+Bảng Events: Lưu thông tin các sự kiện của thư viện.
+Các trường chính: event_id (khóa chính), event_name, description, event_date, start_time, end_time, location, created_at, updated_at.
+Bảng SystemConfig: Lưu các cấu hình chung của hệ thống.
+Các trường chính: config_key (khóa chính), config_value, created_at, updated_at.
+Ví dụ: LIBRARY_OPEN_HOUR, LIBRARY_CLOSE_HOUR, AUTO_RESERVATION_EXPIRY_DAYS, DEFAULT_BORROW_DAYS, MAX_BORROW_BOOKS.
+Bảng ActivityLogs: Ghi nhận lịch sử hoạt động của người dùng và hệ thống (hành động).
+Các trường chính: log_id (khóa chính), user_id (khóa ngoại đến bảng Users - có thể NULL nếu hành động không liên quan đến người dùng cụ thể), action_type_id (khóa ngoại đến bảng ActionTypes), action_description, timestamp.
+Mục đích: Kiểm tra hệ thống, xử lý sự cố, thống kê hành vi người dùng.
+Bảng ActionTypes: Lưu các loại hành động được ghi trong logs.
+Các trường chính: action_type_id (khóa chính), type_name (ví dụ: Login, Logout, CreateBook, BorrowBook).
+Bảng AuditLogs: Ghi lại các thay đổi dữ liệu quan trọng (UPDATE, DELETE) trên các bảng chính.
+Các trường chính: audit_id (khóa chính), user_id (khóa ngoại đến bảng Users), table_name, record_id, action_type (UPDATE, DELETE), old_value, new_value, timestamp.
+Mục đích: Kiểm tra bảo mật, truy vết thay đổi dữ liệu quan trọng.
+Bảng BookHistory: Ghi lại lịch sử chi tiết của từng bản sách cụ thể.
+Các trường chính: history_id (khóa chính), copy_id (khóa ngoại đến bảng Copies), action_type_id (khóa ngoại đến bảng ActionTypes), user_id (người thực hiện hành động hoặc người mượn), action_date, notes.
+Mục đích: Theo dõi vòng đời của từng bản sách, hỗ trợ thống kê chi tiết.
+Bảng PenaltyRules: Lưu trữ các quy tắc tính phí phạt.
+Các trường chính: rule_id (khóa chính), rule_name (ví dụ: Quá hạn mượn), unit (ví dụ: VND/ngày), amount, applies_to (ví dụ: Borrowing).
+Mục đích: Quản lý phí phạt linh hoạt.
+Bảng Notifications: Lưu trữ các thông báo cần gửi đến người dùng.
+Các trường chính: notification_id (khóa chính), user_id (khóa ngoại đến bảng Users), type_id (khóa ngoại đến bảng NotificationTypes), content, status_id (khóa ngoại đến bảng NotificationStatuses), created_at, sent_at (thời điểm gửi thông báo thực tế).
+Mục đích: Quản lý tập trung các thông báo trước khi gửi đi (qua email, SMS, hoặc hiển thị trên giao diện).
+Bảng NotificationTypes: Lưu các loại thông báo.
+Các trường chính: type_id (khóa chính), type_name (ví dụ: BorrowDue, ReservationReady).
+Bảng NotificationStatuses: Lưu các trạng thái của thông báo (ví dụ: Unread, Read, Sent, Failed).
+Các trường chính: status_id (khóa chính), status_name, description.
+Bảng SearchLogs: Ghi nhận lịch sử các lượt tìm kiếm của người dùng.
+Các trường chính: search_id (khóa chính), user_id (khóa ngoại đến bảng Users - có thể NULL), query, timestamp, number_of_results.
+Mục đích: Hỗ trợ tính năng gợi ý tìm kiếm, phân tích hành vi tìm kiếm.
+Bảng ActionsHandled: (Mở rộng) Ghi lại lịch sử xử lý chi tiết cho các yêu cầu có quy trình nhiều bước (ví dụ: duyệt đặt sách, duyệt lịch trực).
+Các trường chính: handled_id (khóa chính), request_type (ví dụ: Reservation, Schedule), request_id (ID của yêu cầu tương ứng), user_id (người xử lý), action_date, action_description, status_after_action.
+indaacademy.vn
+Mối quan hệ (Relationships):
+Một User có thể có nhiều Borrowings, Reservations, BookReviews, BookSuggestions, Schedules (với vai trò CTV), ActivityLogs, AuditLogs, Notifications, SearchLogs.
+Một User có thể có nhiều Roles thông qua bảng UserRoles.
+Một Book có thể có nhiều Copies, Reservations, BookReviews.
+Một Book có thể có nhiều Tags thông qua bảng BookTags.
+Một Genre có thể có nhiều Books.
+Một Language có thể có nhiều Books.
+Một Tag có thể liên kết với nhiều Books thông qua bảng BookTags.
+Một BookLocation có thể chứa nhiều Copies.
+Một Copy thuộc về một Book và có một BookLocation, có nhiều BookHistory.
+Borrowings liên kết với Copies và Users.
+Reservations liên kết với Books, Users và có thể liên kết với Copies khi được gán.
+Schedules liên kết với Users (chỉ CTV) và ShiftTypes.
+BookReviews liên kết với Books và Users, có nhiều ReviewScores.
+ReviewScores liên kết với BookReviews và ReviewCriteria.
+BookSuggestions liên kết với Users và Books.
+Borrowings, Reservations, Schedules, BookSuggestions có thể liên kết với Users (vai trò CTV/Admin) thông qua handled_by_user_id.
+ActivityLogs và BookHistory liên kết với Users và ActionTypes.
+AuditLogs liên kết với Users.
+Notifications liên kết với Users, NotificationTypes và NotificationStatuses.
+SearchLogs liên kết với Users.
+PenaltyRules có thể liên quan đến Borrowings (để tính fine_amount).
+ActionsHandled liên kết với Users và các bảng yêu cầu (Reservations, Schedules).
+Các bảng trạng thái (UserStatuses, CopyStatuses, BorrowingStatuses, ReservationStatuses, ScheduleStatuses, SuggestionStatuses, NotificationStatuses) được tham chiếu từ các bảng chính tương ứng.
+Bảng Roles được tham chiếu từ Users (hoặc UserRoles).
+Bảng ActionTypes được tham chiếu từ ActivityLogs và BookHistory.
+Bảng NotificationTypes được tham chiếu từ Notifications.
+3. Tối ưu hóa hiệu năng & tính linh hoạt (Optimization & Flexibility)
+Index gợi ý:
+username, email trong bảng Users nên có unique index để đảm bảo tính duy nhất và tăng tốc độ tìm kiếm/đăng nhập.
+book_id, genre_id, copy_id, user_id, location_id, shift_type_id, review_id, criteria_id, tag_id, role_id, status_id, action_type_id, type_id trong các bảng liên quan nên có index để tối ưu các truy vấn JOIN và WHERE.
+Các trường ngày/thời gian như borrow_date, due_date, reservation_date, shift_date, timestamp, created_at, updated_at, action_date cũng nên được đánh index nếu thường xuyên được sử dụng trong các truy vấn lọc hoặc sắp xếp theo thời gian.
+query trong SearchLogs có thể cần Full-text index tùy thuộc vào hệ quản trị CSDL và yêu cầu tìm kiếm.
+Sử dụng bảng riêng cho các giá trị lặp lại (Status, Roles, Types): Việc tạo các bảng riêng cho UserStatuses, CopyStatuses, BorrowingStatuses, ReservationStatuses, ScheduleStatuses, SuggestionStatuses, NotificationStatuses, Roles, ShiftTypes, ActionTypes, NotificationTypes, Languages, ReviewCriteria, PenaltyRules và sử dụng khóa ngoại để liên kết là cách tiếp cận tốt nhất. Điều này giúp:
+Đảm bảo tính nhất quán dữ liệu.
+Dễ dàng thay đổi, thêm, xóa các giá trị này mà không cần sửa cấu trúc bảng chính.
+Hỗ trợ tốt hơn cho việc dịch thuật giao diện (lưu tên trạng thái/vai trò/loại thông báo... bằng nhiều ngôn ngữ trong bảng phụ trợ).
+Giảm lỗi chính tả và nhập liệu.
+4. Gắn kết Thiết kế Cơ sở dữ liệu với Giao diện người dùng (UI/UX)
+Trong các giai đoạn thiết kế chi tiết và phát triển sau này, cần luôn gắn kết cấu trúc cơ sở dữ liệu với giao diện người dùng thực tế:
+Trang Dashboard Admin/CTV: Sử dụng dữ liệu tổng hợp từ các bảng Borrowings, Reservations, Schedules, BookSuggestions, ActivityLogs, Notifications để hiển thị các chỉ số quan trọng, tác vụ cần xử lý (ví dụ: yêu cầu mượn/trả, đặt trước, lịch trực chờ duyệt), và các thông báo mới nhất.
+Hiển thị thông tin sách: Dữ liệu từ bảng Books, Copies, BookLocations, BookReviews (để tính điểm đánh giá trung bình), ReviewCriteria, ReviewScores (để hiển thị đánh giá chi tiết theo tiêu chí), Tags (để hiển thị các thẻ liên quan) sẽ được sử dụng để xây dựng trang chi tiết sách, kết quả tìm kiếm, danh sách sách theo thể loại, v.v.
+Tìm kiếm nâng cao: Sử dụng dữ liệu từ bảng Books, Genres, Tags, Languages để cung cấp các bộ lọc và tùy chọn tìm kiếm. Bảng SearchLogs có thể được dùng để gợi ý các truy vấn tìm kiếm phổ biến hoặc gần đây cho người dùng.
+Đánh giá/Review nâng cao: Giao diện cho phép người dùng nhập đánh giá tổng thể (BookReviews) và điểm cho từng tiêu chí cụ thể (ReviewScores dựa trên ReviewCriteria).
+Quản lý tài khoản người dùng: Thông tin từ bảng Users, UserRoles, UserStatuses, Borrowings, Reservations, ActivityLogs, BookHistory (lịch sử các bản sách đã mượn) sẽ được hiển thị trên trang thông tin cá nhân, lịch sử mượn trả, các lượt đặt trước, và nhật ký hoạt động của người dùng. Giao diện quản lý người dùng cho Admin sẽ tương tác với bảng Users, Roles, UserRoles, UserStatuses.
+Chức năng quản lý cho CTV/Admin: Các bảng Users, Roles, UserRoles, Books, Copies, Borrowings, Reservations, Schedules, ShiftTypes, BookSuggestions, ActivityLogs, AuditLogs, BookHistory, PenaltyRules, Notifications, BookLocations, Genres, Tags, Languages, ReviewCriteria, PenaltyRules và các bảng trạng thái tương ứng sẽ là nguồn dữ liệu chính cho các trang quản lý. Giao diện quản lý quy tắc phạt sẽ tương tác với bảng PenaltyRules.
+Thông báo: Dữ liệu từ bảng Notifications, NotificationTypes, NotificationStatuses sẽ được hiển thị trên giao diện người dùng (ví dụ: biểu tượng chuông thông báo) và được sử dụng để gửi email/SMS thông qua External Services.
+Việc liên tục đối chiếu giữa thiết kế cơ sở dữ liệu và yêu cầu giao diện sẽ giúp đảm bảo rằng cấu trúc dữ liệu đủ linh hoạt và hiệu quả để hỗ trợ tất cả các chức năng cần thiết. Thêm các trường created_at và updated_at vào các bảng chính là một thực hành tốt giúp theo dõi thời gian tạo và cập nhật dữ liệu, rất hữu ích cho việc quản lý và hiển thị thông tin trên giao diện.
+

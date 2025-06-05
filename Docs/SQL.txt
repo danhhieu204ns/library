@@ -1,0 +1,588 @@
+-- Script SQL để tạo cấu trúc cơ sở dữ liệu cho Hệ thống Quản lý Thư viện Cộng đồng
+-- Sử dụng PostgreSQL
+
+
+-- Tạo bảng Roles
+CREATE TABLE Roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng UserStatuses
+CREATE TABLE UserStatuses (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+
+-- Tạo bảng Users
+CREATE TABLE Users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE, -- Email có thể không bắt buộc
+    full_name VARCHAR(255) NOT NULL,
+    role_id INT NOT NULL,
+    registration_date DATE NOT NULL,
+    status_id INT NOT NULL,
+    phone_number VARCHAR(20),
+    address TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES Roles (role_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES UserStatuses (status_id) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng UserRoles (Nếu cần quản lý đa vai trò)
+-- DROP TABLE IF EXISTS UserRoles; -- Bỏ comment nếu bạn muốn sử dụng bảng này và bỏ cột role_id trong bảng Users
+-- CREATE TABLE UserRoles (
+--     user_id INT NOT NULL,
+--     role_id INT NOT NULL,
+--     PRIMARY KEY (user_id, role_id),
+--     FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+--     FOREIGN KEY (role_id) REFERENCES Roles (role_id) ON DELETE CASCADE ON UPDATE CASCADE
+-- );
+
+
+-- Tạo bảng Genres
+CREATE TABLE Genres (
+    genre_id SERIAL PRIMARY KEY,
+    genre_name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng Languages
+CREATE TABLE Languages (
+    language_id SERIAL PRIMARY KEY,
+    language_name VARCHAR(50) UNIQUE NOT NULL
+);
+
+
+-- Tạo bảng Publishers
+CREATE TABLE Publishers (
+    publisher_id SERIAL PRIMARY KEY,
+    publisher_name VARCHAR(255) UNIQUE NOT NULL,
+    address TEXT,
+    website VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng Books
+CREATE TABLE Books (
+    book_id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    publisher_id INT, -- Có thể NULL nếu không có bảng Publishers riêng
+    publication_year INT,
+    isbn VARCHAR(20) UNIQUE, -- ISBN có thể NULL hoặc không duy nhất nếu có nhiều phiên bản
+    genre_id INT,
+    language_id INT,
+    description TEXT,
+    total_copies INT DEFAULT 0 NOT NULL CHECK (total_copies >= 0),
+    available_copies INT DEFAULT 0 NOT NULL CHECK (available_copies >= 0),
+    cover_image_url VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (publisher_id) REFERENCES Publishers (publisher_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (genre_id) REFERENCES Genres (genre_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES Languages (language_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng Tags
+CREATE TABLE Tags (
+    tag_id SERIAL PRIMARY KEY,
+    tag_name VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng BookTags (liên kết nhiều-nhiều giữa Books và Tags)
+CREATE TABLE BookTags (
+    book_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    PRIMARY KEY (book_id, tag_id),
+    FOREIGN KEY (book_id) REFERENCES Books (book_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES Tags (tag_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng BookLocations
+CREATE TABLE BookLocations (
+    location_id SERIAL PRIMARY KEY,
+    shelf_number VARCHAR(50) NOT NULL,
+    row_number VARCHAR(50) NOT NULL,
+    level_number VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UNIQUE (shelf_number, row_number, level_number) -- Đảm bảo vị trí là duy nhất
+);
+
+
+-- Tạo bảng CopyStatuses
+CREATE TABLE CopyStatuses (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+
+-- Tạo bảng Copies (từng bản sao vật lý của sách)
+CREATE TABLE Copies (
+    copy_id SERIAL PRIMARY KEY,
+    book_id INT NOT NULL,
+    location_id INT, -- Có thể NULL nếu bản sao chưa được gán vị trí
+    status_id INT NOT NULL,
+    barcode VARCHAR(100) UNIQUE, -- Mã vạch duy nhất cho mỗi bản sao
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (book_id) REFERENCES Books (book_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (location_id) REFERENCES BookLocations (location_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES CopyStatuses (status_id) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng BorrowingStatuses
+CREATE TABLE BorrowingStatuses (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+
+-- Tạo bảng Borrowings (các lượt mượn)
+CREATE TABLE Borrowings (
+    borrow_id SERIAL PRIMARY KEY,
+    copy_id INT NOT NULL,
+    user_id INT NOT NULL,
+    borrow_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    due_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    return_date TIMESTAMP WITH TIME ZONE, -- NULL nếu chưa trả
+    status_id INT NOT NULL,
+    fine_amount DECIMAL(10, 2) DEFAULT 0.00 NOT NULL CHECK (fine_amount >= 0),
+    handled_by_user_id INT, -- CTV/Admin xử lý
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (copy_id) REFERENCES Copies (copy_id) ON DELETE RESTRICT ON UPDATE CASCADE, -- Không xóa bản sao nếu còn lượt mượn
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE RESTRICT ON UPDATE CASCADE, -- Không xóa người dùng nếu còn lượt mượn
+    FOREIGN KEY (status_id) REFERENCES BorrowingStatuses (status_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (handled_by_user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng ReservationStatuses
+CREATE TABLE ReservationStatuses (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+
+-- Tạo bảng Reservations (các lượt đặt trước)
+CREATE TABLE Reservations (
+    reservation_id SERIAL PRIMARY KEY,
+    book_id INT NOT NULL, -- Đặt trước theo đầu sách
+    user_id INT NOT NULL,
+    reservation_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    expiry_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    status_id INT NOT NULL,
+    assigned_copy_id INT, -- Bản sao được gán khi có sẵn
+    handled_by_user_id INT, -- CTV/Admin xử lý
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (book_id) REFERENCES Books (book_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES ReservationStatuses (status_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (assigned_copy_id) REFERENCES Copies (copy_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (handled_by_user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng ShiftTypes (các loại ca trực)
+CREATE TABLE ShiftTypes (
+    shift_type_id SERIAL PRIMARY KEY,
+    shift_name VARCHAR(50) UNIQUE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng ScheduleStatuses (trạng thái lịch trực)
+CREATE TABLE ScheduleStatuses (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+
+-- Tạo bảng Schedules (lịch trực của CTV)
+CREATE TABLE Schedules (
+    schedule_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL, -- ID của CTV
+    shift_date DATE NOT NULL,
+    shift_type_id INT NOT NULL,
+    status_id INT NOT NULL,
+    notes TEXT,
+    approved_by_user_id INT, -- Admin duyệt
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (shift_type_id) REFERENCES ShiftTypes (shift_type_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES ScheduleStatuses (status_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (approved_by_user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    UNIQUE (user_id, shift_date, shift_type_id) -- Mỗi CTV chỉ có 1 ca/ngày cho 1 loại ca
+);
+
+
+-- Tạo bảng BookReviews (đánh giá sách)
+CREATE TABLE BookReviews (
+    review_id SERIAL PRIMARY KEY,
+    book_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    review_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (book_id) REFERENCES Books (book_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (book_id, user_id) -- Mỗi người dùng chỉ đánh giá 1 lần cho 1 sách
+);
+
+
+-- Tạo bảng ReviewCriteria (tiêu chí đánh giá)
+CREATE TABLE ReviewCriteria (
+    criteria_id SERIAL PRIMARY KEY,
+    criteria_name VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng ReviewScores (điểm đánh giá theo tiêu chí)
+CREATE TABLE ReviewScores (
+    score_id SERIAL PRIMARY KEY,
+    review_id INT NOT NULL,
+    criteria_id INT NOT NULL,
+    score INT NOT NULL CHECK (score >= 1 AND score <= 5),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (review_id) REFERENCES BookReviews (review_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (criteria_id) REFERENCES ReviewCriteria (criteria_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (review_id, criteria_id) -- Mỗi tiêu chí chỉ được chấm 1 lần trong 1 review
+);
+
+
+-- Tạo bảng SuggestionStatuses (trạng thái đề xuất sách)
+CREATE TABLE SuggestionStatuses (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+
+-- Tạo bảng BookSuggestions (đề xuất sách mới)
+CREATE TABLE BookSuggestions (
+    suggestion_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    suggested_title VARCHAR(255) NOT NULL,
+    suggested_author VARCHAR(255),
+    suggested_publisher VARCHAR(255),
+    suggestion_notes TEXT,
+    suggestion_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    status_id INT NOT NULL,
+    handled_by_user_id INT, -- CTV/Admin xử lý
+    handling_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES SuggestionStatuses (status_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (handled_by_user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng Events (sự kiện thư viện)
+CREATE TABLE Events (
+    event_id SERIAL PRIMARY KEY,
+    event_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    event_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME,
+    location VARCHAR(255),
+    organizer_user_id INT, -- Người tổ chức (CTV/Admin)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (organizer_user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng SystemConfig (cấu hình hệ thống)
+CREATE TABLE SystemConfig (
+    config_key VARCHAR(100) PRIMARY KEY,
+    config_value TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng ActionTypes (các loại hành động cho logs)
+CREATE TABLE ActionTypes (
+    action_type_id SERIAL PRIMARY KEY,
+    type_name VARCHAR(100) UNIQUE NOT NULL
+);
+
+
+-- Tạo bảng ActivityLogs (lịch sử hoạt động chung)
+CREATE TABLE ActivityLogs (
+    log_id SERIAL PRIMARY KEY,
+    user_id INT, -- Người dùng thực hiện (có thể NULL)
+    action_type_id INT NOT NULL,
+    action_description TEXT NOT NULL,
+    resource_type VARCHAR(50), -- Loại tài nguyên bị ảnh hưởng
+    resource_id INT, -- ID của tài nguyên bị ảnh hưởng
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (action_type_id) REFERENCES ActionTypes (action_type_id) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng AuditLogs (ghi nhận thay đổi dữ liệu quan trọng)
+CREATE TABLE AuditLogs (
+    audit_id SERIAL PRIMARY KEY,
+    user_id INT, -- Người dùng thực hiện thay đổi (có thể NULL)
+    table_name VARCHAR(100) NOT NULL,
+    record_id INT NOT NULL,
+    action_type VARCHAR(10) NOT NULL CHECK (action_type IN ('INSERT', 'UPDATE', 'DELETE')),
+    field_name VARCHAR(100), -- Tên trường bị thay đổi (NULL cho INSERT/DELETE)
+    old_value TEXT, -- Giá trị cũ (NULL cho INSERT)
+    new_value TEXT, -- Giá trị mới (NULL cho DELETE)
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng BookHistory (lịch sử chi tiết bản sao sách)
+CREATE TABLE BookHistory (
+    history_id SERIAL PRIMARY KEY,
+    copy_id INT NOT NULL,
+    action_type_id INT NOT NULL, -- Loại hành động (mượn, trả, mất, hỏng, chuyển vị trí)
+    user_id INT, -- Người dùng liên quan (người mượn, người trả, CTV xử lý)
+    action_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    notes TEXT,
+    related_borrow_id INT, -- Liên kết đến lượt mượn nếu có
+    FOREIGN KEY (copy_id) REFERENCES Copies (copy_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (action_type_id) REFERENCES ActionTypes (action_type_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (related_borrow_id) REFERENCES Borrowings (borrow_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng PenaltyRules (quy tắc tính phạt)
+CREATE TABLE PenaltyRules (
+    rule_id SERIAL PRIMARY KEY,
+    rule_name VARCHAR(100) UNIQUE NOT NULL,
+    applies_to_table VARCHAR(50) NOT NULL, -- Bảng áp dụng (ví dụ: 'Borrowings')
+    condition_description TEXT, -- Mô tả điều kiện áp dụng
+    calculation_method VARCHAR(50) NOT NULL, -- Phương thức tính (ví dụ: 'PerDay', 'FixedAmount')
+    amount DECIMAL(10, 2) NOT NULL CHECK (amount >= 0),
+    unit VARCHAR(20), -- Đơn vị tính (ví dụ: 'VND', 'ngày')
+    is_active BOOLEAN DEFAULT TRUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+-- Tạo bảng NotificationTypes (các loại thông báo)
+CREATE TABLE NotificationTypes (
+    type_id SERIAL PRIMARY KEY,
+    type_name VARCHAR(100) UNIQUE NOT NULL,
+    template TEXT -- Mẫu nội dung thông báo
+);
+
+
+-- Tạo bảng NotificationStatuses (trạng thái thông báo)
+CREATE TABLE NotificationStatuses (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+
+-- Tạo bảng Notifications (lưu trữ thông báo cần gửi)
+CREATE TABLE Notifications (
+    notification_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    type_id INT NOT NULL,
+    content TEXT NOT NULL, -- Nội dung cuối cùng
+    status_id INT NOT NULL,
+    delivery_method VARCHAR(50), -- Phương thức gửi (Email, SMS, InApp)
+    related_record_type VARCHAR(50), -- Loại bản ghi liên quan
+    related_record_id INT, -- ID bản ghi liên quan
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    sent_at TIMESTAMP WITH TIME ZONE, -- Thời điểm gửi thực tế
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (type_id) REFERENCES NotificationTypes (type_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES NotificationStatuses (status_id) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng SearchLogs (lịch sử tìm kiếm)
+CREATE TABLE SearchLogs (
+    search_id SERIAL PRIMARY KEY,
+    user_id INT, -- Người dùng tìm kiếm (có thể NULL)
+    query VARCHAR(255) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    number_of_results INT,
+    search_duration_ms INT,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng ActionsHandled (lịch sử xử lý yêu cầu nhiều bước)
+CREATE TABLE ActionsHandled (
+    handled_id SERIAL PRIMARY KEY,
+    request_type VARCHAR(50) NOT NULL, -- Loại yêu cầu (Reservation, Schedule, BookSuggestion)
+    request_id INT NOT NULL, -- ID của yêu cầu tương ứng
+    user_id INT NOT NULL, -- Người xử lý (CTV/Admin)
+    action_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    action_description TEXT NOT NULL, -- Mô tả hành động
+    status_after_action VARCHAR(50), -- Trạng thái của yêu cầu sau hành động
+    notes TEXT,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+
+-- Tạo bảng EventRegistrations (đăng ký tham gia sự kiện - mở rộng)
+CREATE TABLE EventRegistrations (
+    registration_id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    registration_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES Events (event_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (event_id, user_id) -- Mỗi người dùng chỉ đăng ký 1 lần cho 1 sự kiện
+);
+
+
+
+
+-- Tạo INDEX để tối ưu hiệu năng truy vấn
+CREATE INDEX idx_users_username ON Users (username);
+CREATE INDEX idx_users_email ON Users (email);
+CREATE INDEX idx_users_role_status ON Users (role_id, status_id);
+
+
+CREATE INDEX idx_books_title ON Books USING GIN (to_tsvector('vietnamese', title)); -- Sử dụng Full-text search cho tiêu đề sách
+CREATE INDEX idx_books_author ON Books USING GIN (to_tsvector('vietnamese', author)); -- Sử dụng Full-text search cho tác giả
+CREATE INDEX idx_books_genre ON Books (genre_id);
+CREATE INDEX idx_books_language ON Books (language_id);
+CREATE INDEX idx_books_publisher ON Books (publisher_id);
+
+
+CREATE INDEX idx_booktags_tag_id ON BookTags (tag_id); -- Index trên cột tag_id trong bảng liên kết
+
+
+CREATE INDEX idx_copies_book_id ON Copies (book_id);
+CREATE INDEX idx_copies_location_id ON Copies (location_id);
+CREATE INDEX idx_copies_status_id ON Copies (status_id);
+
+
+CREATE INDEX idx_borrowings_copy_id ON Borrowings (copy_id);
+CREATE INDEX idx_borrowings_user_id ON Borrowings (user_id);
+CREATE INDEX idx_borrowings_status_id ON Borrowings (status_id);
+CREATE INDEX idx_borrowings_due_date ON Borrowings (due_date); -- Quan trọng cho kiểm tra quá hạn
+
+
+CREATE INDEX idx_reservations_book_id ON Reservations (book_id);
+CREATE INDEX idx_reservations_user_id ON Reservations (user_id);
+CREATE INDEX idx_reservations_status_id ON Reservations (status_id);
+CREATE INDEX idx_reservations_reservation_date ON Reservations (reservation_date); -- Quan trọng cho quản lý hàng đợi
+
+
+CREATE INDEX idx_schedules_user_id ON Schedules (user_id);
+CREATE INDEX idx_schedules_shift_date ON Schedules (shift_date);
+CREATE INDEX idx_schedules_status_id ON Schedules (status_id);
+
+
+CREATE INDEX idx_bookreviews_book_id ON BookReviews (book_id);
+CREATE INDEX idx_bookreviews_user_id ON BookReviews (user_id);
+
+
+CREATE INDEX idx_reviewscores_review_id ON ReviewScores (review_id);
+CREATE INDEX idx_reviewscores_criteria_id ON ReviewScores (criteria_id);
+
+
+CREATE INDEX idx_booksuggestions_user_id ON BookSuggestions (user_id);
+CREATE INDEX idx_booksuggestions_status_id ON BookSuggestions (status_id);
+
+
+CREATE INDEX idx_events_event_date ON Events (event_date);
+
+
+CREATE INDEX idx_activitylogs_user_id ON ActivityLogs (user_id);
+CREATE INDEX idx_activitylogs_action_type_id ON ActivityLogs (action_type_id);
+CREATE INDEX idx_activitylogs_timestamp ON ActivityLogs (timestamp);
+
+
+CREATE INDEX idx_auditlogs_user_id ON AuditLogs (user_id);
+CREATE INDEX idx_auditlogs_table_record ON AuditLogs (table_name, record_id);
+CREATE INDEX idx_auditlogs_timestamp ON AuditLogs (timestamp);
+
+
+CREATE INDEX idx_bookhistory_copy_id ON BookHistory (copy_id);
+CREATE INDEX idx_bookhistory_action_date ON BookHistory (action_date);
+
+
+CREATE INDEX idx_notifications_user_id ON Notifications (user_id);
+CREATE INDEX idx_notifications_status_id ON Notifications (status_id);
+CREATE INDEX idx_notifications_created_at ON Notifications (created_at);
+
+
+CREATE INDEX idx_searchlogs_query ON SearchLogs USING GIN (to_tsvector('vietnamese', query)); -- Index cho tìm kiếm log
+CREATE INDEX idx_searchlogs_user_id ON SearchLogs (user_id);
+CREATE INDEX idx_searchlogs_timestamp ON SearchLogs (timestamp);
+
+
+CREATE INDEX idx_actionshandled_request ON ActionsHandled (request_type, request_id);
+CREATE INDEX idx_actionshandled_user_id ON ActionsHandled (user_id);
+
+
+CREATE INDEX idx_eventregistrations_event_id ON EventRegistrations (event_id);
+CREATE INDEX idx_eventregistrations_user_id ON EventRegistrations (user_id);
+
+
+-- Chèn dữ liệu mặc định cho các bảng danh mục/trạng thái (ví dụ)
+-- INSERT INTO Roles (role_name, description) VALUES ('Admin', 'Quản trị viên hệ thống'), ('CTV', 'Cộng tác viên thư viện'), ('DocGia', 'Độc giả');
+-- INSERT INTO UserStatuses (status_name, description) VALUES ('Active', 'Hoạt động'), ('Inactive', 'Không hoạt động'), ('Banned', 'Bị cấm');
+-- INSERT INTO CopyStatuses (status_name, description) VALUES ('Available', 'Có sẵn'), ('Borrowed', 'Đang mượn'), ('Reserved', 'Đang đặt trước'), ('Lost', 'Bị mất'), ('Damaged', 'Bị hỏng');
+-- INSERT INTO BorrowingStatuses (status_name, description) VALUES ('Borrowed', 'Đang mượn'), ('Returned', 'Đã trả'), ('Overdue', 'Quá hạn'), ('Lost', 'Bị mất khi mượn'), ('Damaged', 'Bị hỏng khi mượn');
+-- INSERT INTO ReservationStatuses (status_name, description) VALUES ('Pending', 'Chờ xử lý'), ('Ready', 'Đã sẵn sàng'), ('Cancelled', 'Đã hủy'), ('Fulfilled', 'Đã hoàn thành (đã mượn)');
+-- INSERT INTO ShiftTypes (shift_name, start_time, end_time) VALUES ('Ca sáng', '08:00:00', '12:00:00'), ('Ca chiều', '13:00:00', '17:00:00');
+-- INSERT INTO ScheduleStatuses (status_name, description) VALUES ('Approved', 'Đã duyệt'), ('Pending', 'Chờ duyệt'), ('Rejected', 'Đã từ chối');
+-- INSERT INTO SuggestionStatuses (status_name, description) VALUES ('Pending', 'Chờ xử lý'), ('Reviewed', 'Đã xem xét'), ('Added', 'Đã bổ sung'), ('Rejected', 'Đã từ chối');
+-- INSERT INTO NotificationTypes (type_name, template) VALUES ('BorrowDueReminder', 'Sách ''{book_title}'' của bạn sắp đến hạn trả vào ngày {due_date}.'), ('BorrowOverdue', 'Sách ''{book_title}'' của bạn đã quá hạn trả {days_overdue} ngày. Phí phạt hiện tại: {fine_amount}.');
+-- INSERT INTO NotificationStatuses (status_name, description) VALUES ('Pending', 'Chờ gửi'), ('Sent', 'Đã gửi'), ('Failed', 'Gửi thất bại'), ('Read', 'Đã đọc'), ('Unread', 'Chưa đọc');
+-- INSERT INTO ActionTypes (type_name) VALUES ('UserRegistration'), ('UserLogin'), ('UserLogout'), ('UpdateUserProfile'), ('CreateBook'), ('UpdateBook'), ('DeleteBook'), ('MarkedLost'), ('MarkedDamaged'), ('Relocated'), ('SubmitBookReview'), ('SuggestBook'), ('HandleBookSuggestion'), ('AdminUpdateUser'), ('AdminDeleteUser'), ('UpdateSystemConfig'), ('ReservationExpired'), ('MarkedOverdue'), ('Borrowed'), ('Returned');
+-- INSERT INTO ReviewCriteria (criteria_name) VALUES ('Nội dung'), ('Hình thức'), ('Độ hấp dẫn');
+-- INSERT INTO PenaltyRules (rule_name, applies_to_table, condition_description, calculation_method, amount, unit, is_active) VALUES ('Phạt quá hạn mượn', 'Borrowings', 'Sách quá hạn trả', 'PerDay', 1000.00, 'VND', TRUE);
+-- INSERT INTO Languages (language_name) VALUES ('Tiếng Việt'), ('Tiếng Anh'), ('Tiếng Pháp');
+
+
+

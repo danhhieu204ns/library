@@ -1,0 +1,125 @@
+Cấu trúc dự án Frontend ReactJS + Vite
+Cấu trúc dự án này được đề xuất cho ứng dụng Frontend sử dụng ReactJS và Vite, nhằm tổ chức code một cách logic, dễ quản lý, bảo trì và mở rộng, phù hợp với các trang giao diện đã xác định.
+.
+├── public/             # Các tệp tĩnh (index.html, favicon, assets tĩnh khác)
+│   ├── index.html      # Tệp HTML chính
+│   └── ...
+├── src/                # Mã nguồn chính của ứng dụng
+│   ├── assets/         # Các tài nguyên tĩnh (hình ảnh, font, icon...)
+│   │   ├── images/
+│   │   ├── fonts/
+│   │   └── icons/
+│   ├── components/       # Các component React có thể tái sử dụng
+│   │   ├── common/       # Các component dùng chung toàn ứng dụng (Button, Input, Modal...)
+│   │   │   ├── Button.jsx
+│   │   │   ├── Input.jsx
+│   │   │   └── ...
+│   │   ├── layout/       # Các component bố cục (Header, Footer, Sidebar...)
+│   │   │   ├── Header/
+│   │   │   │   ├── Header.jsx
+│   │   │   │   └── Header.module.css
+│   │   │   ├── Footer.jsx
+│   │   │   └── Sidebar/   # Sidebar có thể khác nhau cho từng vai trò
+│   │   │       ├── Sidebar.jsx
+│   │   │       └── Sidebar.module.css
+│   │   └── specific/     # Các component phức tạp hơn, có thể tái sử dụng trong một vài ngữ cảnh cụ thể (ví dụ: BookCard, UserListItem)
+│   │       ├── BookCard/
+│   │       │   ├── BookCard.jsx
+│   │       │   └── BookCard.module.css
+│   │       └── UserListItem.jsx
+│   ├── contexts/         # Context API cho quản lý trạng thái toàn cục đơn giản
+│   │   ├── __init__.js
+│   │   └── AuthContext.jsx # Context cho thông tin xác thực người dùng
+│   ├── hooks/            # Các custom React Hooks
+│   │   ├── __init__.js
+│   │   └── useFetch.js     # Hook cho việc gọi API
+│   ├── pages/            # Các component đại diện cho từng trang giao diện
+│   │   ├── Public/       # Các trang công khai
+│   │   │   ├── Homepage.jsx
+│   │   │   ├── BookSearchPage.jsx
+│   │   │   ├── BookDetailPage.jsx
+│   │   │   ├── RegistrationPage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── AboutUsPage.jsx
+│   │   │   └── EventsPage.jsx
+│   │   ├── Reader/       # Các trang dành cho Độc giả
+│   │   │   ├── ReaderDashboard.jsx
+│   │   │   ├── ProfilePage.jsx
+│   │   │   ├── CurrentlyBorrowedBooksPage.jsx
+│   │   │   ├── BorrowingHistoryPage.jsx
+│   │   │   ├── ReservedBooksPage.jsx
+│   │   │   ├── SuggestBookPage.jsx
+│   │   │   └── MyNotificationsPage.jsx
+│   │   ├── CTV/          # Các trang dành cho Cộng tác viên
+│   │   │   ├── CTVDashboard.jsx
+│   │   │   ├── BorrowingProcessPage.jsx
+│   │   │   ├── ReturnProcessPage.jsx
+│   │   │   ├── CopyManagementPage.jsx
+│   │   │   ├── ReservationManagementPage.jsx
+│   │   │   ├── ScheduleRegistrationPage.jsx
+│   │   │   ├── ViewSchedulePage.jsx
+│   │   │   ├── BookSuggestionManagementPage.jsx
+│   │   │   └── EventManagementPage.jsx # Nếu CTV được phân quyền
+│   │   └── Admin/        # Các trang dành cho Admin
+│   │       ├── AdminDashboard.jsx
+│   │       ├── UserManagementPage.jsx
+│   │       ├── BookManagementPage.jsx
+│   │       ├── CTVScheduleManagementPage.jsx
+│   │       ├── CategoryManagementPage.jsx
+│   │       ├── SystemConfigurationPage.jsx
+│   │       ├── ReportsPage.jsx
+│   │       ├── ActivityLogsPage.jsx
+│   │       ├── AuditLogsPage.jsx
+│   │       └── PenaltyRulesManagementPage.jsx
+│   ├── routes/           # Cấu hình định tuyến (ví dụ: sử dụng react-router-dom)
+│   │   ├── __init__.js
+│   │   ├── PublicRoutes.jsx
+│   │   ├── ReaderRoutes.jsx
+│   │   ├── CTVRoutes.jsx
+│   │   ├── AdminRoutes.jsx
+│   │   └── AppRouter.jsx     # Router chính
+│   ├── services/         # Logic gọi API (tương tác với Backend)
+│   │   ├── __init__.js
+│   │   ├── api.js          # Cấu hình Axios hoặc Fetch
+│   │   ├── authService.js  # Các hàm gọi API liên quan đến xác thực
+│   │   ├── bookService.js  # Các hàm gọi API liên quan đến sách
+│   │   └── ... (các service khác tương ứng với nhóm API ở Backend)
+│   ├── utils/            # Các hàm tiện ích dùng chung
+│   │   ├── __init__.js
+│   │   └── helpers.js
+│   ├── App.jsx           # Component gốc của ứng dụng
+│   ├── main.jsx          # Điểm vào của ứng dụng React (render App)
+│   └── styles/           # Các tệp CSS/SCSS toàn cục hoặc biến CSS
+│       ├── __init__.css
+│       ├── global.css
+│       └── variables.css
+├── .env                  # Biến môi trường Frontend (ví dụ: URL của Backend API)
+├── .gitignore            # Các file/thư mục bỏ qua khi commit Git
+├── package.json          # Thông tin dự án và dependencies
+├── vite.config.js        # Cấu hình Vite
+└── README.md
+
+Giải thích các thư mục và tệp chính:
+public/: Chứa các tệp tĩnh được sao chép trực tiếp vào thư mục gốc của bản dựng cuối cùng. index.html là tệp HTML chính mà ứng dụng React của bạn sẽ được nhúng vào.
+src/: Chứa toàn bộ mã nguồn của ứng dụng.
+assets/: Nơi lưu trữ các tài nguyên tĩnh không phải là mã nguồn (hình ảnh, font, biểu tượng).
+components/: Chứa các component React. Việc phân loại thành common, layout, specific giúp quản lý các component có mức độ tái sử dụng khác nhau.
+common/: Các component nhỏ, dùng ở nhiều nơi.
+layout/: Các component tạo cấu trúc bố cục trang.
+specific/: Các component phức tạp hơn, có thể chỉ dùng trong một vài trang hoặc ngữ cảnh.
+contexts/: Sử dụng Context API của React để quản lý trạng thái dùng chung mà không cần truyền props qua nhiều cấp. AuthContext là ví dụ điển hình để lưu trữ thông tin người dùng đăng nhập và token.
+hooks/: Chứa các custom React Hooks để tái sử dụng logic trạng thái giữa các component (ví dụ: hook để gọi API, hook để xử lý form).
+pages/: Mỗi thư mục con trong pages/ đại diện cho một nhóm trang theo vai trò (Public, Reader, CTV, Admin). Mỗi tệp .jsx hoặc .tsx trong đây thường là một component React đại diện cho toàn bộ một trang giao diện.
+routes/: Cấu hình định tuyến của ứng dụng. Sử dụng thư viện như react-router-dom để định nghĩa các đường dẫn URL và component trang tương ứng. Có thể phân chia route theo vai trò để dễ quản lý và áp dụng kiểm tra quyền truy cập.
+services/: Chứa các module xử lý việc gọi API đến Backend. Mỗi tệp service tương ứng với một nhóm API (ví dụ: authService.js gọi các API liên quan đến đăng nhập/đăng ký). Việc này giúp tách biệt logic gọi API khỏi các component UI.
+utils/: Chứa các hàm tiện ích nhỏ, không liên quan trực tiếp đến UI, logic nghiệp vụ hoặc gọi API (ví dụ: hàm định dạng ngày tháng, hàm xử lý chuỗi).
+App.jsx: Component gốc, thường chứa cấu hình Router chính, Context Providers và Layout chung.
+main.jsx: Điểm vào của ứng dụng, render component App vào DOM.
+styles/: Chứa các tệp CSS hoặc SCSS toàn cục, các biến CSS, hoặc các style reset. Có thể sử dụng CSS Modules (.module.css) hoặc các thư viện CSS-in-JS cho style cục bộ trong từng component.
+.env: Chứa các biến môi trường cho Frontend (ví dụ: địa chỉ URL của Backend API). Vite hỗ trợ load biến môi trường từ tệp này.
+.gitignore: Cấu hình Git để bỏ qua các tệp và thư mục không cần thiết.
+package.json: Quản lý các dependencies (thư viện) và scripts (chạy dev server, build) của dự án.
+vite.config.js: Cấu hình cho Vite build tool.
+Cấu trúc này giúp bạn tổ chức code Frontend một cách có hệ thống, phân tách rõ ràng các lớp (UI Components, Pages, Routing, API Calls, State Management, Utilities) và các phần dành riêng cho từng vai trò người dùng.
+Bạn có muốn đi sâu vào chi tiết của một phần cụ thể nào trong cấu trúc này không, ví dụ như cách thiết lập routing theo vai trò hay cách tổ chức các service gọi API?
+

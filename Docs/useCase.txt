@@ -1,0 +1,54 @@
+Danh sách chức năng Website Quản lý Thư viện Cộng đồng
+Dựa trên mô tả ban đầu và các đề xuất bổ sung, đây là danh sách đầy đủ các chức năng cho hệ thống quản lý thư viện cộng đồng của bạn:
+🔐 Quản lý người dùng & phân quyền
+UC01: Đăng ký / Đăng nhập / Đăng xuất
+UC02: Quản lý thông tin cá nhân
+UC03: Phân quyền: Admin, Cộng tác viên, Bạn đọc
+UC04: Quản lý danh sách người dùng (chỉ dành cho Admin)
+📚 Quản lý sách
+UC10: Thêm / sửa / xóa thông tin sách
+UC11: Quản lý số lượng sách tồn / sách mượn
+UC12: Gán vị trí sách vào kệ (bao gồm thông tin vị trí cụ thể: dãy - kệ - tầng)
+UC13: Tìm kiếm sách theo tên, tác giả, thể loại, vị trí kệ,...
+UC14: Tra cứu sách đang có sẵn hay đang được mượn
+UC15: Đánh giá và nhận xét sách (cho phép độc giả)
+UC16: Danh sách mong muốn / Đề xuất sách (cho phép độc giả đề xuất sách mới)
+UC17: Tích hợp với các cơ sở dữ liệu sách bên ngoài (ví dụ: Open Library, Google Books) để tự động lấy thông tin sách. (Mở rộng sau)
+UC18: Quản lý sách bị mất / hỏng và quy trình xử lý bồi thường.
+📅 Quản lý mượn - trả sách & đặt trước
+UC20: Bạn đọc có thể đặt mượn trước
+UC21: Cộng tác viên xác nhận mượn / trả sách
+UC22: Kiểm tra hạn trả, tính phạt nếu có
+UC23: Gửi thông báo xác nhận khi đặt mượn thành công
+UC24: Lịch sử mượn trả theo người dùng hoặc theo sách
+UC25: Hủy đặt mượn nếu quá hạn giữ
+UC26: Thao tác mượn/trả sách hàng loạt (cho Cộng tác viên/Admin)
+🧑‍🤝‍🧑 Quản lý cộng tác viên & lịch trực
+UC30: Cộng tác viên đăng ký lịch trực
+UC31: Admin chỉ định hoặc điều chỉnh lịch trực
+UC32: Hiển thị thời gian mở cửa dựa trên lịch trực
+UC33: Gửi thông báo lịch trực qua email/chat
+UC34: Lịch trực có thể hiển thị theo tuần / tháng
+📊 Thống kê & báo cáo
+UC40: Thống kê số sách theo thể loại, số sách đang mượn, đặt trước
+UC41: Top sách được quan tâm/mượn nhiều
+UC42: Thống kê hoạt động mượn của bạn đọc
+UC43: Lịch sử trực của cộng tác viên
+UC44: Xuất báo cáo thống kê ra các định dạng phổ biến (CSV, PDF).
+🔔 Thông báo & nhắc nhở
+UC50: Gửi thông báo sắp đến hạn trả sách (Email/SMS)
+UC51: Gửi thông báo sách quá hạn (Email/SMS)
+UC52: Gửi xác nhận mượn / trả sách qua email (nếu cần)
+UC53: Gửi thông báo sách đặt trước đã sẵn sàng (Email/SMS)
+⚙️ Chức năng quản trị hệ thống (Admin only)
+UC60: Quản lý người dùng và phân quyền
+UC61: Quản lý danh mục (thể loại sách, nhà xuất bản, ngôn ngữ,...)
+UC62: Quản lý cấu hình hệ thống (hạn mượn mặc định, số sách tối đa,...)
+UC63: Dashboard quản lý tổng quan (hiển thị thông tin quan trọng và tác vụ cần xử lý)
+UC64: Quản lý các yêu cầu đề xuất sách mới.
+UC65: Quản lý các sự kiện của thư viện.
+✨ Chức năng nâng cao & trải nghiệm người dùng
+UC70: Thiết kế Responsive (hiển thị tốt trên mọi thiết bị)
+UC71: Tính năng hỗ trợ tiếp cận (Accessibility)
+UC72: Lịch sự kiện của thư viện và đăng ký tham gia trực tuyến.
+

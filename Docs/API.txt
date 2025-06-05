@@ -1,0 +1,436 @@
+Danh sách các API cần xây dựng cho Backend (ExpressJS)
+Dựa trên thiết kế cơ sở dữ liệu và các chức năng của hệ thống, đây là danh sách các API endpoint cần triển khai, được phân nhóm theo các tài nguyên chính.
+Lưu ý: Các endpoint này tuân theo nguyên tắc RESTful API cơ bản. Cần bổ sung các cơ chế xác thực và phân quyền cho từng endpoint.
+🔐 API liên quan đến Người dùng (Users, Roles, UserStatuses, UserRoles)
+POST /users/register
+Mục đích: Đăng ký tài khoản người dùng mới (UC01).
+Body: Thông tin người dùng (username, password, email, full_name, phone_number, address).
+Phản hồi: Thông tin người dùng đã tạo (có thể bỏ qua mật khẩu hash).
+POST /users/login
+Mục đích: Đăng nhập người dùng (UC01).
+Body: Thông tin đăng nhập (username, password).
+Phản hồi: Token xác thực và thông tin người dùng cơ bản.
+POST /users/logout
+Mục đích: Đăng xuất người dùng (UC01).
+Header: Token xác thực.
+GET /users/me
+Mục đích: Lấy thông tin của người dùng đang đăng nhập (UC02).
+Header: Token xác thực.
+Phản hồi: Thông tin chi tiết người dùng.
+PUT /users/me
+Mục đích: Cập nhật thông tin cá nhân của người dùng đang đăng nhập (UC02).
+Header: Token xác thực.
+Body: Thông tin cần cập nhật (email, full_name, phone_number, address,...).
+Phản hồi: Thông tin người dùng sau khi cập nhật.
+GET /users
+Mục đích: Lấy danh sách tất cả người dùng (chỉ Admin) (UC04).
+Header: Token xác thực (Admin).
+Query Params: Bộ lọc (role, status), phân trang, sắp xếp.
+Phản hồi: Danh sách người dùng.
+GET /users/{user_id}
+Mục đích: Lấy thông tin chi tiết của một người dùng cụ thể (chỉ Admin hoặc người dùng đó) (UC04).
+Header: Token xác thực (Admin hoặc người dùng đó).
+Phản hồi: Thông tin chi tiết người dùng.
+PUT /users/{user_id}
+Mục đích: Cập nhật thông tin và phân quyền/trạng thái của người dùng (chỉ Admin) (UC60).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật (full_name, email, phone_number, address, role_id, status_id,...).
+Phản hồi: Thông tin người dùng sau khi cập nhật.
+DELETE /users/{user_id}
+Mục đích: Xóa người dùng (chỉ Admin) (UC60).
+Header: Token xác thực (Admin).
+Phản hồi: Trạng thái xóa thành công/thất bại.
+GET /roles
+Mục đích: Lấy danh sách các vai trò (cho Admin quản lý hoặc hiển thị) (UC61).
+Header: Token xác thực (Admin hoặc CTV).
+Phản hồi: Danh sách vai trò.
+GET /user-statuses
+Mục đích: Lấy danh sách các trạng thái người dùng (cho Admin quản lý) (UC61).
+Header: Token xác thực (Admin).
+Phản hồi: Danh sách trạng thái người dùng.
+📚 API liên quan đến Sách (Books, Genres, Languages, Publishers, Tags, BookTags, BookLocations, Copies, BookReviews, ReviewCriteria, ReviewScores, BookSuggestions, SuggestionStatuses)
+GET /books
+Mục đích: Tìm kiếm và lấy danh sách sách (UC13).
+Query Params: Từ khóa (q), bộ lọc (genre_id, language_id, publisher_id, tag_id, available_only=true/false), phân trang, sắp xếp (theo tiêu đề, tác giả, năm xuất bản, điểm đánh giá...).
+Phản hồi: Danh sách sách.
+GET /books/{book_id}
+Mục đích: Lấy thông tin chi tiết của một đầu sách, bao gồm danh sách bản sao và đánh giá (UC14).
+Phản hồi: Thông tin chi tiết sách, danh sách copy_id liên quan và trạng thái, đánh giá trung bình.
+POST /books
+Mục đích: Thêm sách mới (chỉ CTV/Admin) (UC10).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin sách (title, author, publisher_id, publication_year, isbn, genre_id, language_id, description, cover_image_url, số lượng bản sao ban đầu, tag_ids...).
+Phản hồi: Thông tin sách đã tạo.
+PUT /books/{book_id}
+Mục đích: Cập nhật thông tin sách (chỉ CTV/Admin) (UC10).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin sách cần cập nhật.
+Phản hồi: Thông tin sách sau khi cập nhật.
+DELETE /books/{book_id}
+Mục đích: Xóa sách (chỉ CTV/Admin) (UC10).
+Header: Token xác thực (CTV/Admin).
+Phản hồi: Trạng thái xóa.
+GET /genres
+Mục đích: Lấy danh sách thể loại sách (UC61).
+Phản hồi: Danh sách thể loại.
+POST /genres
+Mục đích: Thêm thể loại mới (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin thể loại (genre_name, description).
+PUT /genres/{genre_id}
+Mục đích: Sửa thể loại (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật.
+DELETE /genres/{genre_id}
+Mục đích: Xóa thể loại (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+GET /languages
+Mục đích: Lấy danh sách ngôn ngữ (UC61).
+Phản hồi: Danh sách ngôn ngữ.
+POST /languages
+Mục đích: Thêm ngôn ngữ mới (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin ngôn ngữ (language_name).
+PUT /languages/{language_id}
+Mục đích: Sửa ngôn ngữ (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật.
+DELETE /languages/{language_id}
+Mục đích: Xóa ngôn ngữ (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+GET /publishers
+Mục đích: Lấy danh sách nhà xuất bản (UC61).
+Phản hồi: Danh sách nhà xuất bản.
+POST /publishers
+Mục đích: Thêm nhà xuất bản mới (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin nhà xuất bản.
+PUT /publishers/{publisher_id}
+Mục đích: Sửa nhà xuất bản (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật.
+DELETE /publishers/{publisher_id}
+Mục đích: Xóa nhà xuất bản (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+GET /tags
+Mục đích: Lấy danh sách tags (UC61).
+Phản hồi: Danh sách tags.
+POST /tags
+Mục đích: Thêm tag mới (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin tag (tag_name).
+PUT /tags/{tag_id}
+Mục đích: Sửa tag (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật.
+DELETE /tags/{tag_id}
+Mục đích: Xóa tag (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+GET /book-locations
+Mục đích: Lấy danh sách vị trí sách (UC12, UC61).
+Phản hồi: Danh sách vị trí.
+POST /book-locations
+Mục đích: Thêm vị trí sách mới (chỉ CTV/Admin) (UC12, UC61).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin vị trí (shelf_number, row_number, level_number, description).
+PUT /book-locations/{location_id}
+Mục đích: Sửa vị trí sách (chỉ CTV/Admin) (UC12, UC61).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin cần cập nhật.
+DELETE /book-locations/{location_id}
+Mục đích: Xóa vị trí sách (chỉ CTV/Admin) (UC12, UC61).
+Header: Token xác thực (CTV/Admin).
+GET /copies
+Mục đích: Lấy danh sách bản sao sách (UC11, UC14).
+Query Params: Bộ lọc (book_id, status_id, location_id, barcode), phân trang, sắp xếp.
+Phản hồi: Danh sách bản sao.
+POST /copies
+Mục đích: Thêm bản sao sách mới (chỉ CTV/Admin) (Mở rộng UC10).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin bản sao (book_id, location_id, status_id, barcode).
+Phản hồi: Thông tin bản sao đã tạo.
+PUT /copies/{copy_id}
+Mục đích: Cập nhật thông tin bản sao (vị trí, trạng thái) (chỉ CTV/Admin) (UC12, UC18).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin cần cập nhật (location_id, status_id, barcode).
+Phản hồi: Thông tin bản sao sau khi cập nhật.
+DELETE /copies/{copy_id}
+Mục đích: Xóa bản sao sách (chỉ CTV/Admin) (Mở rộng UC10).
+Header: Token xác thực (CTV/Admin).
+Phản hồi: Trạng thái xóa.
+POST /books/{book_id}/reviews
+Mục đích: Gửi đánh giá và nhận xét cho sách (chỉ Độc giả) (UC15).
+Header: Token xác thực (Độc giả).
+Body: Thông tin đánh giá (rating, comment, điểm theo tiêu chí).
+Phản hồi: Thông tin đánh giá đã tạo.
+GET /books/{book_id}/reviews
+Mục đích: Lấy danh sách đánh giá và nhận xét của một sách (UC15).
+Query Params: Phân trang, sắp xếp.
+Phản hồi: Danh sách đánh giá.
+GET /review-criteria
+Mục đích: Lấy danh sách các tiêu chí đánh giá (UC61).
+Phản hồi: Danh sách tiêu chí.
+POST /book-suggestions
+Mục đích: Gửi đề xuất sách mới (chỉ Độc giả) (UC16).
+Header: Token xác thực (Độc giả).
+Body: Thông tin đề xuất (suggested_title, suggested_author, suggested_publisher, suggestion_notes).
+Phản hồi: Thông tin đề xuất đã tạo.
+GET /book-suggestions
+Mục đích: Lấy danh sách đề xuất sách (chỉ Admin/CTV) (UC64).
+Header: Token xác thực (Admin/CTV).
+Query Params: Bộ lọc (status), phân trang, sắp xếp.
+Phản hồi: Danh sách đề xuất.
+PUT /book-suggestions/{suggestion_id}
+Mục đích: Cập nhật trạng thái xử lý đề xuất sách (chỉ Admin/CTV) (UC64).
+Header: Token xác thực (Admin/CTV).
+Body: Thông tin cập nhật (status_id, handling_notes).
+Phản hồi: Thông tin đề xuất sau khi cập nhật.
+📅 API liên quan đến Mượn - Trả & Đặt trước (Borrowings, BorrowingStatuses, Reservations, ReservationStatuses)
+POST /borrowings
+Mục đích: Xác nhận mượn sách (chỉ CTV/Admin) (UC21).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin mượn (user_id, copy_id).
+Phản hồi: Thông tin lượt mượn đã tạo.
+PUT /borrowings/{borrow_id}/return
+Mục đích: Xác nhận trả sách (chỉ CTV/Admin) (UC21).
+Header: Token xác thực (CTV/Admin).
+Path Params: borrow_id của lượt mượn.
+Body: (Tùy chọn) Ghi chú trả sách.
+Phản hồi: Thông tin lượt mượn sau khi trả, bao gồm phí phạt (nếu có).
+POST /borrowings/bulk-borrow
+Mục đích: Mượn nhiều sách cùng lúc (chỉ CTV/Admin) (UC26).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin mượn hàng loạt (user_id, danh sách copy_id).
+Phản hồi: Kết quả xử lý cho từng bản sao.
+POST /borrowings/bulk-return
+Mục đích: Trả nhiều sách cùng lúc (chỉ CTV/Admin) (UC26).
+Header: Token xác thực (CTV/Admin).
+Body: Danh sách copy_id cần trả.
+Phản hồi: Kết quả xử lý cho từng bản sao và tổng phí phạt.
+GET /borrowings
+Mục đích: Lấy danh sách các lượt mượn (chỉ Admin/CTV xem tất cả, Độc giả xem của mình) (UC24).
+Header: Token xác thực.
+Query Params: Bộ lọc (user_id, copy_id, status_id, ngày mượn/trả/hạn), phân trang, sắp xếp.
+Phản hồi: Danh sách lượt mượn.
+GET /borrowings/{borrow_id}
+Mục đích: Lấy thông tin chi tiết một lượt mượn (UC24).
+Header: Token xác thực.
+Phản hồi: Thông tin chi tiết lượt mượn.
+POST /reservations
+Mục đích: Đặt mượn sách trước (chỉ Độc giả) (UC20).
+Header: Token xác thực (Độc giả).
+Body: Thông tin đặt trước (book_id).
+Phản hồi: Thông tin lượt đặt trước đã tạo.
+PUT /reservations/{reservation_id}/cancel
+Mục đích: Hủy lượt đặt trước (chỉ Độc giả hoặc CTV/Admin) (UC25).
+Header: Token xác thực.
+Phản hồi: Thông tin lượt đặt trước sau khi hủy.
+PUT /reservations/{reservation_id}/assign-copy
+Mục đích: Gán bản sao sách cho lượt đặt trước (chỉ CTV/Admin) (Mở rộng UC20).
+Header: Token xác thực (CTV/Admin).
+Body: Thông tin gán (copy_id).
+Phản hồi: Thông tin lượt đặt trước sau khi gán.
+GET /reservations
+Mục đích: Lấy danh sách các lượt đặt trước (chỉ Admin/CTV xem tất cả, Độc giả xem của mình) (UC20).
+Header: Token xác thực.
+Query Params: Bộ lọc (user_id, book_id, status_id, ngày đặt/hết hạn), phân trang, sắp xếp.
+Phản hồi: Danh sách lượt đặt trước.
+GET /reservations/{reservation_id}
+Mục đích: Lấy thông tin chi tiết một lượt đặt trước (UC20).
+Header: Token xác thực.
+Phản hồi: Thông tin chi tiết lượt đặt trước.
+GET /borrowing-statuses
+Mục đích: Lấy danh sách trạng thái mượn (UC61).
+Phản hồi: Danh sách trạng thái.
+GET /reservation-statuses
+Mục đích: Lấy danh sách trạng thái đặt trước (UC61).
+Phản hồi: Danh sách trạng thái.
+🧑‍🤝‍🧑 API liên quan đến Cộng tác viên & Lịch trực (Schedules, ShiftTypes, ScheduleStatuses)
+POST /schedules
+Mục đích: Cộng tác viên đăng ký lịch trực (UC30).
+Header: Token xác thực (CTV).
+Body: Thông tin đăng ký (shift_date, shift_type_id).
+Phản hồi: Thông tin lịch trực đã tạo.
+GET /schedules
+Mục đích: Lấy danh sách lịch trực (CTV xem của mình, Admin xem tất cả) (UC30, UC34).
+Header: Token xác thực.
+Query Params: Bộ lọc (user_id, status_id, khoảng ngày), phân trang, sắp xếp.
+Phản hồi: Danh sách lịch trực.
+PUT /schedules/{schedule_id}/approve
+Mục đích: Admin duyệt lịch trực (chỉ Admin) (UC31).
+Header: Token xác thực (Admin).
+Phản hồi: Thông tin lịch trực sau khi duyệt.
+PUT /schedules/{schedule_id}/reject
+Mục đích: Admin từ chối lịch trực (chỉ Admin) (UC31).
+Header: Token xác thực (Admin).
+Body: (Tùy chọn) Lý do từ chối.
+Phản hồi: Thông tin lịch trực sau khi từ chối.
+POST /schedules/assign
+Mục đích: Admin chỉ định lịch trực cho CTV (chỉ Admin) (UC31).
+Header: Token xác thực (Admin).
+Body: Thông tin chỉ định (user_id, shift_date, shift_type_id).
+Phản hồi: Thông tin lịch trực đã tạo (trạng thái 'Approved').
+PUT /schedules/{schedule_id}
+Mục đích: Admin sửa lịch trực (chỉ Admin) (UC31).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật (shift_date, shift_type_id, status_id, notes).
+Phản hồi: Thông tin lịch trực sau khi cập nhật.
+DELETE /schedules/{schedule_id}
+Mục đích: Admin xóa lịch trực (chỉ Admin) (UC31).
+Header: Token xác thực (Admin).
+Phản hồi: Trạng thái xóa.
+GET /shift-types
+Mục đích: Lấy danh sách các loại ca trực (UC61).
+Phản hồi: Danh sách loại ca trực.
+GET /schedule-statuses
+Mục đích: Lấy danh sách trạng thái lịch trực (UC61).
+Phản hồi: Danh sách trạng thái lịch trực.
+GET /library/open-hours
+Mục đích: Lấy giờ mở cửa dựa trên lịch trực đã duyệt (UC32).
+Query Params: Khoảng ngày (ví dụ: start_date, end_date).
+Phản hồi: Dữ liệu về giờ mở cửa theo ngày.
+📊 API liên quan đến Thống kê & Báo cáo (Borrowings, Reservations, Schedules, BookReviews, ActivityLogs, BookHistory, SearchLogs)
+GET /reports/book-stats
+Mục đích: Thống kê số sách theo thể loại, số sách đang mượn/đặt trước (UC40).
+Header: Token xác thực (Admin/CTV).
+Query Params: Loại thống kê (theo thể loại, trạng thái mượn/đặt).
+Phản hồi: Dữ liệu thống kê.
+GET /reports/top-books
+Mục đích: Top sách được quan tâm/mượn nhiều (UC41).
+Header: Token xác thực (Admin/CTV).
+Query Params: Tiêu chí (mượn nhiều, đặt nhiều, đánh giá cao), giới hạn số lượng (top N).
+Phản hồi: Danh sách sách phổ biến.
+GET /reports/user-borrowing-stats
+Mục đích: Thống kê hoạt động mượn của bạn đọc (UC42).
+Header: Token xác thực (Admin/CTV).
+Query Params: Bộ lọc (user_id, khoảng thời gian), phân trang, sắp xếp.
+Phản hồi: Danh sách độc giả kèm số liệu mượn trả.
+GET /reports/ctv-schedule-history
+Mục đích: Lịch sử trực của cộng tác viên (UC43).
+Header: Token xác thực (Admin/CTV).
+Query Params: Bộ lọc (user_id, khoảng thời gian, status), phân trang, sắp xếp.
+Phản hồi: Danh sách lịch trực trong quá khứ.
+GET /reports/export
+Mục đích: Xuất báo cáo thống kê (UC44).
+Header: Token xác thực (Admin/CTV).
+Query Params: Loại báo cáo, bộ lọc, định dạng (csv, pdf).
+Phản hồi: Tệp báo cáo.
+GET /dashboard/summary
+Mục đích: Dữ liệu tổng quan cho Dashboard Admin/CTV (UC63).
+Header: Token xác thực (Admin/CTV).
+Phản hồi: Các chỉ số tổng hợp (số sách đang mượn, đặt trước chờ xử lý, đề xuất mới...).
+GET /activity-logs
+Mục đích: Xem lịch sử hoạt động (chỉ Admin) (Mở rộng từ Dashboard/Báo cáo).
+Header: Token xác thực (Admin).
+Query Params: Bộ lọc (user_id, action_type, khoảng thời gian), phân trang.
+Phản hồi: Danh sách log hoạt động.
+GET /audit-logs
+Mục đích: Xem lịch sử thay đổi dữ liệu quan trọng (chỉ Admin) (Mở rộng từ Dashboard/Báo cáo).
+Header: Token xác thực (Admin).
+Query Params: Bộ lọc (user_id, table, record_id, action_type, khoảng thời gian), phân trang.
+Phản hồi: Danh sách log audit.
+GET /copies/{copy_id}/history
+Mục đích: Xem lịch sử chi tiết của một bản sao sách (UC24, mở rộng).
+Header: Token xác thực (Admin/CTV).
+Phản hồi: Danh sách các sự kiện lịch sử của bản sao đó.
+GET /search-logs
+Mục đích: Xem lịch sử tìm kiếm (chỉ Admin) (Mở rộng từ Báo cáo).
+Header: Token xác thực (Admin).
+Query Params: Bộ lọc (user_id, query, khoảng thời gian), phân trang.
+Phản hồi: Danh sách log tìm kiếm.
+🔔 API liên quan đến Thông báo & Nhắc nhở (Notifications, NotificationTypes, NotificationStatuses)
+GET /notifications/me
+Mục đích: Lấy danh sách thông báo của người dùng đang đăng nhập.
+Header: Token xác thực.
+Query Params: Bộ lọc (status: read/unread), phân trang.
+Phản hồi: Danh sách thông báo của người dùng.
+PUT /notifications/{notification_id}/mark-as-read
+Mục đích: Đánh dấu thông báo là đã đọc.
+Header: Token xác thực.
+Phản hồi: Thông tin thông báo sau khi cập nhật.
+GET /notification-types
+Mục đích: Lấy danh sách các loại thông báo (UC61).
+Header: Token xác thực (Admin).
+Phản hồi: Danh sách loại thông báo.
+GET /notification-statuses
+Mục đích: Lấy danh sách trạng thái thông báo (UC61).
+Header: Token xác thực (Admin).
+Phản hồi: Danh sách trạng thái thông báo.
+⚙️ API liên quan đến Chức năng quản trị hệ thống (SystemConfig, PenaltyRules, ReviewCriteria, ActionTypes, NotificationTypes, NotificationStatuses, ...)
+GET /system-config
+Mục đích: Lấy tất cả cấu hình hệ thống (chỉ Admin) (UC62).
+Header: Token xác thực (Admin).
+Phản hồi: Danh sách cấu hình key-value.
+PUT /system-config
+Mục đích: Cập nhật cấu hình hệ thống (chỉ Admin) (UC62).
+Header: Token xác thực (Admin).
+Body: Danh sách các cấu hình cần cập nhật.
+Phản hồi: Trạng thái cập nhật.
+GET /penalty-rules
+Mục đích: Lấy danh sách quy tắc phạt (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Phản hồi: Danh sách quy tắc phạt.
+POST /penalty-rules
+Mục đích: Thêm quy tắc phạt mới (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin quy tắc phạt.
+PUT /penalty-rules/{rule_id}
+Mục đích: Sửa quy tắc phạt (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật.
+DELETE /penalty-rules/{rule_id}
+Mục đích: Xóa quy tắc phạt (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+GET /review-criteria
+Mục đích: Lấy danh sách tiêu chí đánh giá (UC61).
+Phản hồi: Danh sách tiêu chí.
+POST /review-criteria
+Mục đích: Thêm tiêu chí đánh giá mới (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin tiêu chí.
+PUT /review-criteria/{criteria_id}
+Mục đích: Sửa tiêu chí đánh giá (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+Body: Thông tin cần cập nhật.
+DELETE /review-criteria/{criteria_id}
+Mục đích: Xóa tiêu chí đánh giá (chỉ Admin) (UC61).
+Header: Token xác thực (Admin).
+GET /action-types
+Mục đích: Lấy danh sách loại hành động (cho Admin xem logs) (UC61).
+Header: Token xác thực (Admin).
+Phản hồi: Danh sách loại hành động.
+✨ API liên quan đến Chức năng nâng cao & Trải nghiệm người dùng (Events, EventRegistrations)
+GET /events
+Mục đích: Lấy danh sách sự kiện (UC72).
+Query Params: Bộ lọc (khoảng ngày, sắp diễn ra), phân trang.
+Phản hồi: Danh sách sự kiện.
+GET /events/{event_id}
+Mục đích: Lấy thông tin chi tiết một sự kiện (UC72).
+Phản hồi: Thông tin chi tiết sự kiện.
+POST /events
+Mục đích: Thêm sự kiện mới (chỉ Admin/CTV) (UC65).
+Header: Token xác thực (Admin/CTV).
+Body: Thông tin sự kiện (event_name, description, event_date, start_time, end_time, location, organizer_user_id).
+Phản hồi: Thông tin sự kiện đã tạo.
+PUT /events/{event_id}
+Mục đích: Sửa thông tin sự kiện (chỉ Admin/CTV) (UC65).
+Header: Token xác thực (Admin/CTV).
+Body: Thông tin cần cập nhật.
+Phản hồi: Thông tin sự kiện sau khi cập nhật.
+DELETE /events/{event_id}
+Mục đích: Xóa sự kiện (chỉ Admin/CTV) (UC65).
+Header: Token xác thực (Admin/CTV).
+Phản hồi: Trạng thái xóa.
+POST /events/{event_id}/register
+Mục đích: Đăng ký tham gia sự kiện (chỉ Độc giả) (UC72 mở rộng).
+Header: Token xác thực (Độc giả).
+Phản hồi: Trạng thái đăng ký thành công/thất bại.
+DELETE /events/{event_id}/register
+Mục đích: Hủy đăng ký tham gia sự kiện (chỉ Độc giả) (UC72 mở rộng).
+Header: Token xác thực (Độc giả).
+Phản hồi: Trạng thái hủy đăng ký thành công/thất bại.
+GET /events/{event_id}/registrations
+Mục đích: Lấy danh sách người đăng ký tham gia sự kiện (chỉ Admin/CTV) (Mở rộng UC65).
+Header: Token xác thực (Admin/CTV).
+Phản hồi: Danh sách người dùng đã đăng ký.
+
