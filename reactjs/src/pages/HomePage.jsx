@@ -16,8 +16,8 @@ const HomePage = () => {
         setIsLoading(true);
         // Get books with highest ratings or marked as featured
         const response = await booksAPI.getBooks({ limit: 6, sort: '-rating', featured: true });
-        // console.log('Featured books response:', response);
-        setFeaturedBooks(response.data.data.books || []);
+        console.log('Featured books response:', response);
+        setFeaturedBooks(response?.data?.data?.books || []);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching featured books:', err);
