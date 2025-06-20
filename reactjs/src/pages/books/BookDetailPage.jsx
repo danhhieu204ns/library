@@ -144,13 +144,13 @@ const BookDetailPage = () => {
         </div>
       </div>
     );
-  }  const book = bookData?.data?.book;
-  const availableCopies = bookData?.data?.available_copies || [];
+  }  const book = bookData?.data?.data?.book;
+  const availableCopies = bookData?.data?.data?.available_copies || [];
 
   // Debug logging
-  console.log('Book ID from URL:', id);
-  console.log('Book Data Response:', bookData);
-  console.log('Extracted Book:', book);
+  // console.log('Book ID from URL:', id);
+  // console.log('Book Data Response:', bookData);
+  // console.log('Extracted Book:', book);
 
   if (!book) {
     return (
