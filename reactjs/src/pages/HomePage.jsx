@@ -16,7 +16,7 @@ const HomePage = () => {
         setIsLoading(true);
         // Get books with highest ratings or marked as featured
         const response = await booksAPI.getBooks({ limit: 6, sort: '-rating', featured: true });
-        console.log('Featured books response:', response);
+        // console.log('Featured books response:', response);
         setFeaturedBooks(response?.data?.data?.books || []);
         setIsLoading(false);
       } catch (err) {
@@ -28,6 +28,8 @@ const HomePage = () => {
 
     fetchFeaturedBooks();
   }, []);
+
+  // console.log('Featured books:', featuredBooks);  
 
   return (    
     <div className="overflow-hidden">      
@@ -339,11 +341,12 @@ const HomePage = () => {
             ) : (
               featuredBooks.map((book) => (                
               <Link to={`/books/${book._id}`} key={book._id} className="group">
+                {/* {console.log('Book cover URL:', book.cover_image_url)} */}
                   <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow h-full flex flex-col">
                     <div className="h-48 sm:h-56 md:h-64 overflow-hidden bg-gray-200">
-                      {book.coverImage ? (
+                      {book.cover_image_url ? (
                         <img 
-                          src={book.coverImage} 
+                          src={book.cover_image_url} 
                           alt={book.title} 
                           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
@@ -353,7 +356,8 @@ const HomePage = () => {
                           <BookOpen className="h-12 w-12 sm:h-16 sm:w-16 text-yellow-500" style={{ color: "var(--primary-color)" }} />
                         </div>
                       )}
-                    </div>                    <div className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
+                    </div>                    
+                    <div className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
                       <div className="flex items-center mb-2">
                         <span className="text-xs sm:text-sm font-medium px-2 py-1 bg-yellow-100 text-yellow-800 rounded truncate max-w-[70%]" style={{ backgroundColor: "var(--primary-light)", color: "var(--text-on-primary)" }}>
                           {book.genre.genre_name}
