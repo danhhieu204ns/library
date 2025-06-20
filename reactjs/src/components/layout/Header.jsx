@@ -44,11 +44,13 @@ const Header = () => {
             <Link to="/books" className="flex items-center space-x-1 text-gray-700 hover:text-gray-900 hover:underline decoration-yellow-400 decoration-2 underline-offset-4 transition-colors" style={{ textDecorationColor: "var(--primary-color)" }}>
               <Search className="h-4 w-4" />
               <span>Tìm sách</span>
-            </Link>{isAuthenticated && (
-              <>                <Link to="/dashboard" className="flex items-center space-x-1 text-gray-700 hover:text-gray-900 hover:underline decoration-yellow-400 decoration-2 underline-offset-4 transition-colors" style={{ textDecorationColor: "var(--primary-color)" }}>
+            </Link>
+            {isAuthenticated && (
+              <>                
+                {user?.role === 'DocGia' && (<Link to="/dashboard" className="flex items-center space-x-1 text-gray-700 hover:text-gray-900 hover:underline decoration-yellow-400 decoration-2 underline-offset-4 transition-colors" style={{ textDecorationColor: "var(--primary-color)" }}>
                   <User className="h-4 w-4" />
                   <span>Dashboard</span>
-                </Link>
+                </Link>)}
                 {user?.role === 'CTV' && (
                   <Link to="/staff" className="flex items-center space-x-1 text-gray-700 hover:text-gray-900 hover:underline decoration-yellow-400 decoration-2 underline-offset-4 transition-colors" style={{ textDecorationColor: "var(--primary-color)" }}>
                     <Calendar className="h-4 w-4" />
