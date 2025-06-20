@@ -15,10 +15,12 @@ import {
   Edit,
   Trash2,
   UserPlus,
-  BookPlus
+  BookPlus,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usersAPI, borrowingsAPI, reservationsAPI, booksAPI } from '../../services/api';
+import ManageRolesTab from '../../components/tabs/ManageRolesTab';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -77,13 +79,13 @@ const AdminDashboard = () => {
   const pendingReservations = reservations.filter(r => r.status === 'Pending').length;
   const overdueBorrowings = borrowings.filter(b => 
     b.status === 'Borrowed' && new Date(b.due_date) < new Date()
-  ).length;
-  const tabs = [
+  ).length;  const tabs = [
     { id: 'overview', name: 'Overview', icon: BarChart3 },
     { id: 'users', name: 'Users', icon: Users },
     { id: 'borrowings', name: 'Borrowings', icon: BookOpen },
     { id: 'reservations', name: 'Reservations', icon: Calendar },
     { id: 'books', name: 'Books', icon: BookPlus },
+    { id: 'roles', name: 'Quản Lý Vai Trò', icon: Shield },
     { id: 'management', name: 'Management', icon: Settings },
   ];
 
@@ -309,16 +311,37 @@ const AdminDashboard = () => {
                   </div>
                 </div>                {/* Quick Actions */}
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <Link
-                      to="/admin/users"
+                      to="/management/users"
                       className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
                     >
                       <Users className="h-8 w-8 text-blue-600 mr-3" />
                       <div>
                         <p className="font-medium text-gray-900">User Management</p>
                         <p className="text-sm text-gray-500">Manage users and roles</p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/management/books"
+                      className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                    >
+                      <BookOpen className="h-8 w-8 text-indigo-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-gray-900">Book Management</p>
+                        <p className="text-sm text-gray-500">Manage books and inventory</p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/management/borrowings"
+                      className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                    >
+                      <Clock className="h-8 w-8 text-yellow-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-gray-900">Borrowings</p>
+                        <p className="text-sm text-gray-500">Manage loans and returns</p>
                       </div>
                     </Link>
 
@@ -343,17 +366,6 @@ const AdminDashboard = () => {
                         <p className="text-sm text-gray-500">Configure library settings</p>
                       </div>
                     </Link>
-
-                    <button
-                      onClick={() => setActiveTab('management')}
-                      className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-                    >
-                      <Calendar className="h-8 w-8 text-orange-600 mr-3" />
-                      <div>
-                        <p className="font-medium text-gray-900">More Tools</p>
-                        <p className="text-sm text-gray-500">Access all admin tools</p>
-                      </div>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -695,7 +707,7 @@ const AdminDashboard = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-6">System Management</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <Link
-                    to="/admin/users"
+                    to="/management/users"
                     className="group relative bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center">
@@ -876,10 +888,10 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
-            )}
+            )}            {/* Other tabs placeholder */}
+            {activeTab === 'roles' && <ManageRolesTab />}
 
-            {/* Other tabs placeholder */}
-            {!['overview', 'users', 'borrowings', 'reservations', 'books', 'management'].includes(activeTab) && (
+            {!['overview', 'users', 'borrowings', 'reservations', 'books', 'management', 'roles'].includes(activeTab) && (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">
                   <Settings className="h-12 w-12 mx-auto" />
