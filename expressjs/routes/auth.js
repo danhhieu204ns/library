@@ -3,10 +3,82 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const { User } = require('../models/User');
+const { auth } = require('../middleware/auth');
+const { getPermissionsForRole, getFrontendRole } = require('../config/permissions');
+const { auditAuth } = require('../middleware/auditLog');
 const router = express.Router();
+
+// Get user permissions
+router.get('/permissions', auth, async (req, res) => {
+  try {
+    const { user } = req;
+    const permissions = getPermissionsForRole(user.role);
+    const frontendRole = getFrontendRole(user.role);
+    
+    res.json({
+      success: true,
+      data: {
+        role: frontendRole, // Send frontend role
+        backendRole: user.role, // Also send backend role for reference
+        permissions: permissions,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          full_name: user.full_name,
+          role: frontendRole,
+          backendRole: user.role,
+          status: user.status
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get permissions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user permissions'
+    });
+  }
+});
+
+// Get current user profile
+router.get('/me', auth, async (req, res) => {
+  try {
+    const { user } = req;
+    const permissions = getPermissionsForRole(user.role);
+    const frontendRole = getFrontendRole(user.role);
+    
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          full_name: user.full_name,
+          role: frontendRole,
+          backendRole: user.role,
+          status: user.status,
+          phone_number: user.phone_number,
+          address: user.address,
+          registration_date: user.registration_date
+        },
+        permissions: permissions,
+        frontendRole: frontendRole
+      }
+    });
+  } catch (error) {
+    console.error('Get current user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user profile'
+    });
+  }
+});
 
 // Register new user
 router.post('/register', [
+  // ...existing validation...
   body('username')
     .isLength({ min: 3, max: 50 })
     .withMessage('Username must be between 3 and 50 characters')
@@ -24,7 +96,7 @@ router.post('/register', [
     .withMessage('Full name is required')
     .isLength({ max: 255 })
     .withMessage('Full name cannot exceed 255 characters')
-], async (req, res) => {
+], auditAuth('REGISTER'), async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -107,7 +179,7 @@ router.post('/register', [
 router.post('/login', [
   body('username').notEmpty().withMessage('Username is required'),
   body('password').notEmpty().withMessage('Password is required')
-], async (req, res) => {
+], auditAuth('LOGIN'), async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);

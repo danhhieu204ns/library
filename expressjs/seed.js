@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const { 
@@ -10,6 +11,9 @@ const {
   Book, 
   Copy 
 } = require('./models/Book');
+
+// Add User model import
+const { User } = require('./models/User');
 
 const connectDB = async () => {
   try {
@@ -23,7 +27,8 @@ const connectDB = async () => {
 
 const seedData = async () => {
   try {
-    console.log('Starting database seeding...');    // Clear existing data and indexes
+    console.log('Starting database seeding...');
+    // Clear existing data and indexes
     await mongoose.connection.db.dropDatabase();
     console.log('Dropped database');
 
@@ -35,8 +40,51 @@ const seedData = async () => {
     await BookLocation.deleteMany({});
     await Book.deleteMany({});
     await Copy.deleteMany({});
+    await User.deleteMany({});
 
     console.log('Cleared existing data');
+
+    // Create Users
+    console.log('Creating users...');
+    const salt = await bcrypt.genSalt(10);
+    
+    const adminPasswordHash = await bcrypt.hash('admin123', salt);
+    const ctvPasswordHash = await bcrypt.hash('ctv123ctv123', salt);
+    
+    const users = await User.insertMany([
+      {
+        username: 'admin',
+        email: 'admin@yenlibrary.com',
+        password_hash: adminPasswordHash,
+        role: 'Admin',
+        full_name: 'Admin User',
+        permissions: [
+          // Full permissions for admin
+          { resource: 'books', actions: ['view', 'create', 'edit', 'delete'] },
+          { resource: 'users', actions: ['view', 'create', 'edit', 'delete'] },
+          { resource: 'borrowings', actions: ['view', 'create', 'edit', 'delete'] },
+          { resource: 'reports', actions: ['view', 'create'] },
+          { resource: 'settings', actions: ['view', 'edit'] },
+          { resource: 'audit', actions: ['view'] }
+        ]
+      },
+      {
+        username: 'ctv',
+        email: 'ctv@yenlibrary.com',
+        password_hash: ctvPasswordHash,
+        role: 'CTV',
+        full_name: 'Staff User',
+        permissions: [
+          // Limited permissions for staff
+          { resource: 'books', actions: ['view', 'create', 'edit'] },
+          { resource: 'users', actions: ['view', 'edit'] },
+          { resource: 'borrowings', actions: ['view', 'create', 'edit'] },
+          { resource: 'reports', actions: ['view'] }
+        ]
+      }
+    ]);
+
+    console.log('Created users');
 
     // Create Genres
     const genres = await Genre.insertMany([
@@ -132,7 +180,7 @@ const seedData = async () => {
         publication_year: 2010,
         isbn: '9786041037717',
         genre: genres.find(g => g.genre_name === 'Fiction')._id,
-        language: languages.find(l => l.language_name === 'Vietnamese')._id,
+        book_language: languages.find(l => l.language_name === 'Vietnamese')._id, // Changed from language_id to language
         description: 'Cuốn tiểu thuyết nổi tiếng của nhà văn Nguyễn Nhật Ánh kể về tuổi thơ miền quê Việt Nam.',
         total_copies: 5,
         available_copies: 5,
@@ -145,7 +193,7 @@ const seedData = async () => {
         publication_year: 1990,
         isbn: '9786041037724',
         genre: genres.find(g => g.genre_name === 'Romance')._id,
-        language: languages.find(l => l.language_name === 'Vietnamese')._id,
+        book_language: languages.find(l => l.language_name === 'Vietnamese')._id,
         description: 'Câu chuyện tình yêu đầu đời trong trẻo và đầy cảm xúc.',
         total_copies: 3,
         available_copies: 3,
@@ -158,7 +206,7 @@ const seedData = async () => {
         publication_year: 1960,
         isbn: '9780060935467',
         genre: genres.find(g => g.genre_name === 'Fiction')._id,
-        language: languages.find(l => l.language_name === 'English')._id,
+        book_language: languages.find(l => l.language_name === 'English')._id,
         description: 'A gripping tale of racial injustice and childhood innocence in the American South.',
         total_copies: 4,
         available_copies: 4,
@@ -171,7 +219,7 @@ const seedData = async () => {
         publication_year: 1949,
         isbn: '9780451524935',
         genre: genres.find(g => g.genre_name === 'Science Fiction')._id,
-        language: languages.find(l => l.language_name === 'English')._id,
+        book_language: languages.find(l => l.language_name === 'English')._id,
         description: 'A dystopian social science fiction novel about totalitarian control.',
         total_copies: 6,
         available_copies: 6,
@@ -184,7 +232,7 @@ const seedData = async () => {
         publication_year: 1925,
         isbn: '9780743273565',
         genre: genres.find(g => g.genre_name === 'Fiction')._id,
-        language: languages.find(l => l.language_name === 'English')._id,
+        book_language: languages.find(l => l.language_name === 'English')._id,
         description: 'A classic American novel set in the Jazz Age.',
         total_copies: 3,
         available_copies: 2,
@@ -197,7 +245,7 @@ const seedData = async () => {
         publication_year: 1965,
         isbn: '9780441172719',
         genre: genres.find(g => g.genre_name === 'Science Fiction')._id,
-        language: languages.find(l => l.language_name === 'English')._id,
+        book_language: languages.find(l => l.language_name === 'English')._id,
         description: 'Epic science fiction novel set in the distant future.',
         total_copies: 4,
         available_copies: 4,
@@ -210,7 +258,7 @@ const seedData = async () => {
         publication_year: 2011,
         isbn: '9780062316097',
         genre: genres.find(g => g.genre_name === 'History')._id,
-        language: languages.find(l => l.language_name === 'English')._id,
+        book_language: languages.find(l => l.language_name === 'English')._id,
         description: 'A fascinating exploration of human history and evolution.',
         total_copies: 5,
         available_copies: 5,
@@ -223,7 +271,7 @@ const seedData = async () => {
         publication_year: 2008,
         isbn: '9780132350884',
         genre: genres.find(g => g.genre_name === 'Technology')._id,
-        language: languages.find(l => l.language_name === 'English')._id,
+        book_language: languages.find(l => l.language_name === 'English')._id,
         description: 'A handbook of agile software craftsmanship.',
         total_copies: 3,
         available_copies: 3,
@@ -263,8 +311,10 @@ const seedData = async () => {
     const bookCount = await Book.countDocuments();
     const copyCount = await Copy.countDocuments();
     const genreCount = await Genre.countDocuments();
+    const userCount = await User.countDocuments();
     
     console.log('\n=== Seeding Summary ===');
+    console.log(`👤 Users: ${userCount}`);
     console.log(`📚 Books: ${bookCount}`);
     console.log(`📄 Copies: ${copyCount}`);
     console.log(`🏷️  Genres: ${genreCount}`);

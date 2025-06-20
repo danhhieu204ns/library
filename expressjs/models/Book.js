@@ -119,7 +119,7 @@ const bookSchema = new mongoose.Schema({
     ref: 'Genre',
     required: true
   },
-  language: {
+  book_language: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Language',
     required: true

@@ -8,34 +8,49 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import BooksPage from './pages/books/BooksPage';
 import BookDetailPage from './pages/books/BookDetailPage';
-import UserDashboard from './pages/user/UserDashboard';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminUserManagement from './pages/admin/AdminUserManagement';
-import AdminReports from './pages/admin/AdminReports';
-import AdminSystemSettings from './pages/admin/AdminSystemSettings';
-import AdminCopyManagement from './pages/admin/AdminCopyManagement';
-import AdminCategoryManagement from './pages/admin/AdminCategoryManagement';
-import AdminAuditLogs from './pages/admin/AdminAuditLogs';
-import AdminScheduleManagement from './pages/admin/AdminScheduleManagement';
-import StaffDashboard from './pages/staff/StaffDashboard';
+import ThemeSelector from './components/ThemeSelector';
+
+// Dashboard Layouts
+import AdminDashboardLayout from './layouts/AdminDashboardLayout';
+import StaffDashboardLayout from './layouts/StaffDashboardLayout';
+import UserDashboardLayout from './layouts/UserDashboardLayout';
+
+// Admin Dashboard Tabs
+import AdminOverviewTab from './pages/admin/tabs/AdminOverviewTab';
+import AdminUsersTab from './pages/admin/tabs/AdminUsersTab';
+import AdminBooksTab from './pages/admin/tabs/AdminBooksTab';
+import AdminBorrowingsTab from './pages/admin/tabs/AdminBorrowingsTab';
+import AdminReservationsTab from './pages/admin/tabs/AdminReservationsTab';
+import AdminSettingsTab from './pages/admin/tabs/AdminSettingsTab';
+import ManageRolesTab from './components/tabs/ManageRolesTab';
+
+// Staff Dashboard Tabs
+import StaffOverviewTab from './pages/staff/tabs/StaffOverviewTab';
+import StaffBooksTab from './pages/staff/tabs/StaffBooksTab';
+import StaffBorrowingsTab from './pages/staff/tabs/StaffBorrowingsTab';
+import StaffReservationsTab from './pages/staff/tabs/StaffReservationsTab';
+import StaffSchedulesTab from './pages/staff/tabs/StaffSchedulesTab';
+import StaffUsersTab from './pages/staff/tabs/StaffUsersTab';
+
+// User Dashboard Tabs
+import UserBorrowedTab from './pages/user/tabs/UserBorrowedTab';
+import UserHistoryTab from './pages/user/tabs/UserHistoryTab';
+import UserReservationsTab from './pages/user/tabs/UserReservationsTab';
+import UserFavoritesTab from './pages/user/tabs/UserFavoritesTab';
+import UserProfileTab from './pages/user/tabs/UserProfileTab';
+
+// Standalone Pages
 import BorrowPage from './pages/staff/BorrowPage';
 import ReturnPage from './pages/staff/ReturnPage';
 import UserSearchPage from './pages/staff/UserSearchPage';
-import StaffSchedulesPage from './pages/staff/StaffSchedulesPage';
-import StaffReservationsPage from './pages/staff/StaffReservationsPage';
 import ReservationDetailPage from './pages/staff/ReservationDetailPage';
-import UserReportsPage from './pages/staff/UserReportsPage';
-import StaffBorrowingsPage from './pages/staff/StaffBorrowingsPage';
-import StaffUsersPage from './pages/staff/StaffUsersPage';
-import ScheduleCalendarPage from './pages/staff/ScheduleCalendarPage';
-import StaffScheduleReportsPage from './pages/staff/StaffScheduleReportsPage';
-import ThemeSelector from './components/ThemeSelector';
 
 function App() {
   return (
     <AuthProvider>
       <Layout>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/theme" element={<ThemeSelector />} />
           <Route path="/login" element={<LoginPage />} />
@@ -43,116 +58,49 @@ function App() {
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:id" element={<BookDetailPage />} />
           
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <UserDashboard />
-            </ProtectedRoute>
-          } />
-          
+          {/* Admin Dashboard Routes */}
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminDashboard />
+              <AdminDashboardLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index element={<AdminOverviewTab />} />
+            <Route path="users" element={<AdminUsersTab />} />
+            <Route path="roles" element={<ManageRolesTab />} />
+            <Route path="borrowings" element={<AdminBorrowingsTab />} />
+            <Route path="reservations" element={<AdminReservationsTab />} />
+            <Route path="books" element={<AdminBooksTab />} />
+            <Route path="settings" element={<AdminSettingsTab />} />
+          </Route>
           
-          <Route path="/admin/users" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminUserManagement />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/reports" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminReports />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/settings" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminSystemSettings />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/copies" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminCopyManagement />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/categories" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminCategoryManagement />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/audit" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminAuditLogs />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/schedule" element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminScheduleManagement />
-            </ProtectedRoute>
-          } />
-          
+          {/* Staff Dashboard Routes */}
           <Route path="/staff" element={
             <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <StaffDashboard />
+              <StaffDashboardLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index element={<StaffOverviewTab />} />
+            <Route path="books" element={<StaffBooksTab />} />
+            <Route path="borrowings" element={<StaffBorrowingsTab />} />
+            <Route path="reservations" element={<StaffReservationsTab />} />
+            <Route path="schedules" element={<StaffSchedulesTab />} />
+            <Route path="users" element={<StaffUsersTab />} />
+          </Route>
           
-          {/* Staff Management Routes */}
-          <Route path="/staff/borrowings" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <StaffBorrowingsPage />
+          {/* User Dashboard Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <UserDashboardLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index element={<UserBorrowedTab />} />
+            <Route path="history" element={<UserHistoryTab />} />
+            <Route path="reservations" element={<UserReservationsTab />} />
+            <Route path="favorites" element={<UserFavoritesTab />} />
+            <Route path="profile" element={<UserProfileTab />} />
+          </Route>
           
-          <Route path="/staff/reservations" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <StaffReservationsPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/staff/users" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <StaffUsersPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/staff/schedules" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <StaffSchedulesPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/staff/user-search" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <UserSearchPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/staff/user-reports" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <UserReportsPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/staff/schedule-calendar" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <ScheduleCalendarPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/staff/schedule-reports" element={
-            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
-              <StaffScheduleReportsPage />
-            </ProtectedRoute>
-          } />
-          
+          {/* Standalone Staff Pages */}
           <Route path="/staff/borrow" element={
             <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
               <BorrowPage />
@@ -162,6 +110,12 @@ function App() {
           <Route path="/staff/return" element={
             <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
               <ReturnPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/staff/user-search" element={
+            <ProtectedRoute allowedRoles={['Admin', 'CTV']}>
+              <UserSearchPage />
             </ProtectedRoute>
           } />
           

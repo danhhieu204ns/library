@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/User');
+const { getPermissionsForRole, getFrontendRole } = require('../config/permissions');
 
 // Authentication middleware
 const auth = async (req, res, next) => {
@@ -28,9 +29,11 @@ const auth = async (req, res, next) => {
         success: false,
         message: 'Account is not active.'
       });
-    }
-
+    }    // Add user permissions to request object
     req.user = user;
+    req.userPermissions = getPermissionsForRole(user.role);
+    req.frontendRole = getFrontendRole(user.role);
+    
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
