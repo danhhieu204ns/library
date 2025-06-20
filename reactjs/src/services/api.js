@@ -17,6 +17,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Don't set Content-Type for FormData as axios will set the correct boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => {
@@ -51,6 +57,7 @@ export const usersAPI = {
   updateProfile: (userData) => api.put('/users/me', userData),
   getUsers: (params) => api.get('/users', { params }),
   getUser: (id) => api.get(`/users/${id}`),
+  createUser: (userData) => api.post('/users', userData),
   updateUser: (id, userData) => api.put(`/users/${id}`, userData),
   deleteUser: (id) => api.delete(`/users/${id}`),
 };
@@ -59,8 +66,14 @@ export const usersAPI = {
 export const booksAPI = {
   getBooks: (params) => api.get('/books', { params }),
   getBook: (id) => api.get(`/books/${id}`),
-  createBook: (bookData) => api.post('/books', bookData),
-  updateBook: (id, bookData) => api.put(`/books/${id}`, bookData),
+  createBook: (bookData) => {
+    // FormData should be sent with proper content-type
+    return api.post('/books', bookData);
+  },
+  updateBook: (id, bookData) => {
+    // FormData should be sent with proper content-type
+    return api.put(`/books/${id}`, bookData);
+  },
   deleteBook: (id) => api.delete(`/books/${id}`),
   getGenres: () => api.get('/books/meta/genres'),
   getLanguages: () => api.get('/books/meta/languages'),
@@ -71,8 +84,10 @@ export const booksAPI = {
 export const borrowingsAPI = {
   getBorrowings: (params) => api.get('/borrowings', { params }),
   getBorrowing: (id) => api.get(`/borrowings/${id}`),
+  createBorrowing: (borrowData) => api.post('/borrowings', borrowData),
   borrowBook: (borrowData) => api.post('/borrowings', borrowData),
   returnBook: (id, returnData) => api.put(`/borrowings/${id}/return`, returnData),
+  renewBorrowing: (id, renewData) => api.put(`/borrowings/${id}/renew`, renewData),
 };
 
 // Reservations API calls
@@ -116,6 +131,16 @@ export const reportsAPI = {
   getBookReports: (params) => api.get('/reports/books', { params }),
   getBorrowingReports: (params) => api.get('/reports/borrowings', { params }),
   getSystemReports: (params) => api.get('/reports/system', { params }),
+};
+
+// Roles API calls
+export const rolesAPI = {
+  getAllRoles: () => api.get('/roles'),
+  createRole: (roleData) => api.post('/roles', roleData),
+  getRoleById: (id) => api.get(`/roles/${id}`),
+  updateRole: (id, roleData) => api.put(`/roles/${id}`, roleData),
+  deleteRole: (id) => api.delete(`/roles/${id}`),
+  updateUserRole: (userId, roleId) => api.put(`/user-roles/${userId}/role`, { roleId })
 };
 
 export default api;
