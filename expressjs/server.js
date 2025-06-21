@@ -58,6 +58,7 @@ app.use('/api/roles', require('./routes/roles'));
 app.use('/api/user-roles', require('./routes/userRoles'));
 app.use('/api/shift-requests', require('./routes/shiftRequests'));
 app.use('/api/schedule', require('./routes/schedule'));
+app.use('/api/audit-logs', require('./routes/auditLogs'));
 
 // API Documentation endpoint
 app.get('/api/docs', (req, res) => {

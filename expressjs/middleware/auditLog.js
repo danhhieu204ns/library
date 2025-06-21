@@ -1,7 +1,7 @@
 const AuditLog = require('../models/AuditLog');
 
 // Middleware to log API actions for audit purposes
-const auditLog = (action) => {
+const auditLog = (action, resourceType = 'OTHER') => {
   return (req, res, next) => {
     const startTime = Date.now();
     
@@ -31,21 +31,42 @@ const auditLog = (action) => {
       // Log the action asynchronously to avoid blocking response
       if (req.user) {
         const logData = {
+          // Legacy fields
           userId: req.user._id,
           userRole: req.user.role,
+          // New format
+          user: {
+            userId: req.user._id,
+            username: req.user.username,
+            email: req.user.email,
+            role: req.user.role
+          },
           action: action,
+          // Legacy field
           resource: req.route?.path || req.path,
+          // New field
+          resourceType: resourceType,
           resourceId: req.params?.id || null,
           method: req.method,
           endpoint: req.originalUrl,
+          description: `${action} ${resourceType}${req.params?.id ? ` ID: ${req.params.id}` : ''}`,
+          details: {
+            path: req.path,
+            query: req.query,
+            params: req.params,
+            body: ['GET', 'DELETE'].includes(req.method) ? {} : req.body
+          },
           success: responseSuccess,
+          status: responseSuccess ? 'SUCCESS' : 'FAILURE',
           statusCode: res.statusCode,
           ip: req.ip || req.connection.remoteAddress,
+          ipAddress: req.ip || req.connection.remoteAddress,
           userAgent: req.get('User-Agent') || '',
           requestData: ['GET', 'DELETE'].includes(req.method) ? req.query : req.body,
           responseMessage: responseData?.message || '',
           error: responseSuccess ? null : (responseData?.error || responseData?.message),
-          duration: duration
+          duration: duration,
+          timestamp: new Date()
         };
         
         // Save to audit log (async, don't block response)
@@ -85,22 +106,39 @@ const auditAuth = (action) => {
       const logData = {
         userId: data.user?._id || null,
         userRole: data.user?.role || 'Unknown',
+        // New format
+        user: {
+          userId: data.user?._id,
+          username: data.user?.username || req.body?.username,
+          email: data.user?.email || req.body?.email,
+          role: data.user?.role || 'Unknown'
+        },
         action: action,
         resource: 'auth',
-        resourceId: null,
+        resourceType: 'USER',
+        resourceId: data.user?._id || null,
         method: req.method,
         endpoint: req.originalUrl,
+        description: `${action} attempt by ${req.body?.username || req.body?.email || 'unknown user'}`,
+        details: {
+          username: req.body?.username,
+          email: req.body?.email,
+          successful: success
+        },
         success: success,
+        status: success ? 'SUCCESS' : 'FAILURE',
         statusCode: res.statusCode,
         ip: req.ip || req.connection.remoteAddress,
+        ipAddress: req.ip || req.connection.remoteAddress,
         userAgent: req.get('User-Agent') || '',
         requestData: { username: req.body?.username, email: req.body?.email },
         responseMessage: data.message || '',
         error: success ? null : (data.error || data.message),
-        duration: duration
+        duration: duration,
+        timestamp: new Date()
       };
-      
-      // For failed auth, we might not have userId, use a placeholder
+      };
+        // For failed auth, we might not have userId, use a placeholder
       if (!logData.userId && req.body?.username) {
         logData.userId = null; // We'll track by username in requestData
       }
@@ -113,11 +151,110 @@ const auditAuth = (action) => {
     };
     
     next();
-  };
+};
+
+/**
+ * Utility để ghi log theo cách thủ công
+ */
+const auditLogger = {
+  /**
+   * Tạo bản ghi audit log
+   * @param {Object} req - Express request object
+   * @param {Object} options - Thông tin cần ghi log
+   * @returns {Promise<Object>} - Bản ghi audit log đã tạo
+   */
+  async log(req, options) {
+    try {
+      const {
+        action,
+        resourceType,
+        resourceId,
+        description,
+        details,
+        status = 'SUCCESS',
+      } = options;
+
+      const user = req.user ? {
+        userId: req.user._id,
+        username: req.user.username,
+        email: req.user.email,
+        role: req.user.role
+      } : null;
+
+      const logEntry = new AuditLog({
+        // Legacy format
+        userId: req.user?._id,
+        userRole: req.user?.role,
+        action,
+        resource: resourceType,
+        resourceId,
+        method: req.method,
+        endpoint: req.originalUrl,
+        success: status === 'SUCCESS' || status === 'INFO',
+        statusCode: req.res?.statusCode || 200,
+        ip: req.ip || req.connection?.remoteAddress,
+        userAgent: req.headers?.['user-agent'],
+        // New format
+        user,
+        resourceType,
+        description,
+        details,
+        ipAddress: req.ip || req.connection?.remoteAddress,
+        status,
+        timestamp: new Date()
+      });
+
+      await logEntry.save();
+      return logEntry;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      // Không throw error để không ảnh hưởng đến luồng chính của ứng dụng
+      return null;
+    }
+  },
+
+  /**
+   * Tạo log cho system events
+   * @param {Object} options - Thông tin cần ghi log
+   * @returns {Promise<Object>} - Bản ghi audit log đã tạo
+   */
+  async logSystem(options) {
+    try {
+      const {
+        action,
+        resourceType = 'SYSTEM',
+        resourceId = null,
+        description,
+        details,
+        status = 'INFO',
+      } = options;
+
+      const logEntry = new AuditLog({
+        action,
+        resource: resourceType,
+        resourceType,
+        resourceId,
+        description,
+        details,
+        method: 'SYSTEM',
+        endpoint: '/system',        success: status === 'SUCCESS' || status === 'INFO',
+        statusCode: 200,
+        status,
+        timestamp: new Date()
+      });
+
+      await logEntry.save();
+      return logEntry;
+    } catch (error) {
+      console.error('Error creating system audit log:', error);
+      return null;
+    }
+  }
 };
 
 module.exports = {
   auditLog,
   auditAuth,
-  saveAuditLog
+  saveAuditLog,
+  auditLogger
 };
