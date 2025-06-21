@@ -8,7 +8,8 @@ import {
   Book, 
   Users,
   Menu,
-  X
+  X,
+  ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -28,12 +29,12 @@ const StaffDashboardLayout = () => {
     }
     return null;
   }
-
   const tabs = [
     { id: 'overview', name: 'Tổng Quan', icon: BarChart3, path: '/staff' },
     { id: 'borrowings', name: 'Quản Lý Mượn Trả', icon: BookOpen, path: '/staff/borrowings' },
     { id: 'reservations', name: 'Quản Lý Đặt Trước', icon: Calendar, path: '/staff/reservations' },
     { id: 'schedules', name: 'Quản Lý Lịch Trực', icon: Clock, path: '/staff/schedules' },
+    { id: 'shifts', name: 'Đăng Ký Ca Trực', icon: ClipboardList, path: '/staff/shifts' },
     { id: 'books', name: 'Quản Lý Sách', icon: Book, path: '/staff/books' },
     { id: 'users', name: 'Quản Lý Người Dùng', icon: Users, path: '/staff/users' },
   ];

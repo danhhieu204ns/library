@@ -22,17 +22,31 @@ const auth = async (req, res, next) => {
         success: false,
         message: 'Invalid token. User not found.'
       });
-    }
-
-    if (user.status !== 'Active') {
+    }    if (user.status !== 'Active') {
       return res.status(401).json({
         success: false,
         message: 'Account is not active.'
       });
-    }    // Add user permissions to request object
+    }
+    
+    // Add user information to request object
     req.user = user;
-    req.userPermissions = getPermissionsForRole(user.role);
-    req.frontendRole = getFrontendRole(user.role);
+    
+    // Ensure user.roles is available (using role as fallback if roles is not defined)
+    if (!user.roles && user.role) {
+      user.roles = [user.role];
+    }
+    
+    // Add permissions based on user roles
+    const allPermissions = [];
+    if (user.roles && user.roles.length > 0) {
+      user.roles.forEach(role => {
+        const rolePermissions = getPermissionsForRole(role);
+        allPermissions.push(...rolePermissions);
+      });
+    }
+    
+    req.userPermissions = [...new Set(allPermissions)]; // Remove duplicates
     
     next();
   } catch (error) {

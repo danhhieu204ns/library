@@ -29,8 +29,8 @@ const seedData = async () => {
   try {
     console.log('Starting database seeding...');
     // Clear existing data and indexes
-    await mongoose.connection.db.dropDatabase();
-    console.log('Dropped database');
+    // await mongoose.connection.db.dropDatabase();
+    // console.log('Dropped database');
 
     // Recreate collections
     await Genre.deleteMany({});
@@ -49,7 +49,7 @@ const seedData = async () => {
     const salt = await bcrypt.genSalt(10);
     
     const adminPasswordHash = await bcrypt.hash('admin123', salt);
-    const ctvPasswordHash = await bcrypt.hash('ctv123ctv123', salt);
+    const ctvPasswordHash = await bcrypt.hash('ctv123', salt);
     
     const users = await User.insertMany([
       {

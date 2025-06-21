@@ -34,6 +34,12 @@ const PERMISSIONS = {
   SCHEDULES_EDIT: 'schedules:edit',
   SCHEDULES_DELETE: 'schedules:delete',
   
+  // Shift request permissions
+  SHIFT_REQUESTS_VIEW: 'shift_requests:view',
+  SHIFT_REQUESTS_CREATE: 'shift_requests:create',
+  SHIFT_REQUESTS_APPROVE: 'shift_requests:approve',
+  SHIFT_REQUESTS_FINALIZE: 'shift_requests:finalize',
+  
   // Report permissions
   REPORTS_VIEW: 'reports:view',
   REPORTS_EXPORT: 'reports:export',
@@ -78,6 +84,10 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.SCHEDULES_CREATE,
     PERMISSIONS.SCHEDULES_EDIT,
     
+    // Shift requests
+    PERMISSIONS.SHIFT_REQUESTS_VIEW,
+    PERMISSIONS.SHIFT_REQUESTS_CREATE,
+    
     // Basic reports
     PERMISSIONS.REPORTS_VIEW
   ],
@@ -98,8 +108,13 @@ const getPermissionsForRole = (role) => {
 };
 
 // Helper function to check if a role has a specific permission
-const hasPermission = (userRole, permission) => {
-  const rolePermissions = getPermissionsForRole(userRole);
+const hasPermission = (role, permission) => {
+  // If role is Admin, they have all permissions
+  if (role === 'Admin') {
+    return true;
+  }
+  
+  const rolePermissions = getPermissionsForRole(role);
   return rolePermissions.includes(permission);
 };
 

@@ -4,6 +4,7 @@ import { BookOpen, Search, Users, Calendar, Star, ChevronRight, BookOpenCheck, B
 import { booksAPI } from '../services/api';
 import EmptyState from '../components/common/EmptyState';
 import YenLibraryGallery from '../components/YenLibraryGallery';
+import HomeScheduleView from '../components/home/HomeScheduleView';
 
 const HomePage = () => {
   const [featuredBooks, setFeaturedBooks] = useState([]);
@@ -293,7 +294,27 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </section>      {/* Featured Books Section */}
+      </section>
+      
+      {/* Library Schedule Section */}
+      <section className="py-12 md:py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
+              Lịch hoạt động thư viện
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Xem lịch trực hàng tuần để biết thời gian mở cửa của thư viện
+            </p>
+          </div>
+          
+          <div className="max-w-5xl mx-auto">
+            <HomeScheduleView />
+          </div>
+        </div>
+      </section>
+      
+      {/* Featured Books Section */}
       <section className="py-16 md:py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-8 md:mb-12">
