@@ -13,12 +13,18 @@ const requirePermission = (permission) => {
       });
     }
     
-    if (!hasPermission(user.role, permission)) {
+    // Check if user has Admin role, which has all permissions
+    if (user.roles && user.roles.includes('Admin')) {
+      return next();
+    }
+    
+    // For other roles, check specific permissions
+    if (!user.roles || !user.roles.some(role => hasPermission(role, permission))) {
       return res.status(403).json({ 
         success: false,
         message: `Permission ${permission} required`,
         error: 'Forbidden',
-        userRole: user.role,
+        userRoles: user.roles,
         requiredPermission: permission
       });
     }

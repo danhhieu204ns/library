@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
@@ -9,6 +11,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import BooksPage from './pages/books/BooksPage';
 import BookDetailPage from './pages/books/BookDetailPage';
 import ThemeSelector from './components/ThemeSelector';
+import FinalScheduleView from './components/schedule/FinalScheduleView';
 
 // Dashboard Layouts
 import AdminDashboardLayout from './layouts/AdminDashboardLayout';
@@ -23,6 +26,7 @@ import AdminBorrowingsTab from './pages/admin/tabs/AdminBorrowingsTab';
 import AdminReservationsTab from './pages/admin/tabs/AdminReservationsTab';
 import AdminSettingsTab from './pages/admin/tabs/AdminSettingsTab';
 import ManageRolesTab from './components/tabs/ManageRolesTab';
+import ApproveShiftTab from './pages/admin/tabs/ApproveShiftTab';
 
 // Staff Dashboard Tabs
 import StaffOverviewTab from './pages/staff/tabs/StaffOverviewTab';
@@ -31,6 +35,7 @@ import StaffBorrowingsTab from './pages/staff/tabs/StaffBorrowingsTab';
 import StaffReservationsTab from './pages/staff/tabs/StaffReservationsTab';
 import StaffSchedulesTab from './pages/staff/tabs/StaffSchedulesTab';
 import StaffUsersTab from './pages/staff/tabs/StaffUsersTab';
+import RegisterShiftTab from './pages/staff/tabs/RegisterShiftTab';
 
 // User Dashboard Tabs
 import UserBorrowedTab from './pages/user/tabs/UserBorrowedTab';
@@ -45,12 +50,13 @@ import ReturnPage from './pages/staff/ReturnPage';
 import UserSearchPage from './pages/staff/UserSearchPage';
 import ReservationDetailPage from './pages/staff/ReservationDetailPage';
 
-function App() {
-  return (
+function App() {  return (
     <AuthProvider>
-      <Layout>
-        <Routes>
-          {/* Public Routes */}
+      <ToastProvider>
+        <Layout>
+          <Toaster position="top-right" />
+          <Routes>
+            {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/theme" element={<ThemeSelector />} />
           <Route path="/login" element={<LoginPage />} />
@@ -71,6 +77,7 @@ function App() {
             <Route path="reservations" element={<AdminReservationsTab />} />
             <Route path="books" element={<AdminBooksTab />} />
             <Route path="settings" element={<AdminSettingsTab />} />
+            <Route path="shift-approval" element={<ApproveShiftTab />} />
           </Route>
           
           {/* Staff Dashboard Routes */}
@@ -85,6 +92,7 @@ function App() {
             <Route path="reservations" element={<StaffReservationsTab />} />
             <Route path="schedules" element={<StaffSchedulesTab />} />
             <Route path="users" element={<StaffUsersTab />} />
+            <Route path="shifts" element={<RegisterShiftTab />} />
           </Route>
           
           {/* User Dashboard Routes */}
@@ -124,9 +132,13 @@ function App() {
               <ReservationDetailPage />
             </ProtectedRoute>
           } />
+          
+          {/* Public Schedule View */}
+          <Route path="/schedule" element={<FinalScheduleView />} />
         </Routes>
       </Layout>
-    </AuthProvider>
+    </ToastProvider>
+  </AuthProvider>
   );
 }
 

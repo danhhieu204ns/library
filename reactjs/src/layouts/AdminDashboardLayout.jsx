@@ -9,7 +9,8 @@ import {
   Settings,
   Menu,
   X,
-  UserCog
+  UserCog,
+  CheckSquare
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -29,7 +30,6 @@ const AdminDashboardLayout = () => {
     }
     return null;
   }
-
   const tabs = [
     { id: 'overview', name: 'Tổng quan', icon: BarChart3, path: '/admin' },
     { id: 'users', name: 'Người dùng', icon: Users, path: '/admin/users' },
@@ -37,6 +37,7 @@ const AdminDashboardLayout = () => {
     { id: 'borrowings', name: 'Mượn trả', icon: BookOpen, path: '/admin/borrowings' },
     { id: 'reservations', name: 'Đặt trước', icon: Calendar, path: '/admin/reservations' },
     { id: 'books', name: 'Quản lý sách', icon: BookPlus, path: '/admin/books' },
+    { id: 'shift-approval', name: 'Duyệt lịch trực', icon: CheckSquare, path: '/admin/shift-approval' },
     { id: 'settings', name: 'Cài đặt', icon: Settings, path: '/admin/settings' },
   ];
 

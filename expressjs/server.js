@@ -56,6 +56,8 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/roles', require('./routes/roles'));
 app.use('/api/user-roles', require('./routes/userRoles'));
+app.use('/api/shift-requests', require('./routes/shiftRequests'));
+app.use('/api/schedule', require('./routes/schedule'));
 
 // API Documentation endpoint
 app.get('/api/docs', (req, res) => {
