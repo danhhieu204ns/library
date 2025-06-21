@@ -1,7 +1,7 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
-const { requirePermission, addUserPermissions } = require('../middleware/permissions');
-const { auditLog } = require('../middleware/auditLog');
+const { auth, authenticate } = require('../middleware/auth');
+const { requirePermission, addUserPermissions, hasPermission } = require('../middleware/permissions');
+const { auditLog, auditLogger } = require('../middleware/auditLog');
 const { PERMISSIONS } = require('../config/permissions');
 const { query, validationResult } = require('express-validator');
 const AuditLog = require('../models/AuditLog');
@@ -31,30 +31,39 @@ router.get('/',
           message: 'Validation errors',
           errors: errors.array()
         });
-      }
-
-      const page = parseInt(req.query.page) || 1;
+      }      const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 50;
       const skip = (page - 1) * limit;
       
-      const { userId, action, resource, success, startDate, endDate } = req.query;
+      const { userId, action, resource, resourceType, success, startDate, endDate, status } = req.query;
       const filter = {};
       
-      if (userId) filter.userId = userId;
+      if (userId) {
+        filter.$or = [
+          { userId: userId },
+          { 'user.userId': userId }
+        ];
+      }
       if (action) filter.action = { $regex: action, $options: 'i' };
       if (resource) filter.resource = { $regex: resource, $options: 'i' };
+      if (resourceType) filter.resourceType = resourceType;
       if (success !== undefined) filter.success = success === 'true';
+      if (status) filter.status = status;
       
       // Date range filter
       if (startDate || endDate) {
-        filter.createdAt = {};
-        if (startDate) filter.createdAt.$gte = new Date(startDate);
-        if (endDate) filter.createdAt.$lte = new Date(endDate);
-      }
-
-      const logs = await AuditLog.find(filter)
+        const dateField = filter.timestamp ? 'timestamp' : 'createdAt';
+        filter[dateField] = {};
+        if (startDate) filter[dateField].$gte = new Date(startDate);
+        if (endDate) {
+          const endDateObj = new Date(endDate);
+          endDateObj.setHours(23, 59, 59, 999);
+          filter[dateField].$lte = endDateObj;
+        }
+      }      const logs = await AuditLog.find(filter)
         .populate('userId', 'username full_name email role')
-        .sort({ createdAt: -1 })
+        .populate('user.userId', 'username full_name email role')
+        .sort({ createdAt: -1, timestamp: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
@@ -62,10 +71,14 @@ router.get('/',
       const total = await AuditLog.countDocuments(filter);
 
       // Transform logs to include user info
-      const transformedLogs = logs.map(log => ({
-        ...log,
-        user: log.userId || null
-      }));
+      const transformedLogs = logs.map(log => {
+        // Handle both old and new user data format
+        const userInfo = log.user?.userId || log.userId || null;
+        return {
+          ...log,
+          user: userInfo
+        };
+      });
 
       res.json({
         success: true,
@@ -104,17 +117,15 @@ router.get('/stats',
         dateFilter.createdAt = {};
         if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
         if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
-      }
-
-      // Aggregate statistics
+      }      // Aggregate statistics
       const stats = await AuditLog.aggregate([
         { $match: dateFilter },
         {
           $group: {
             _id: null,
             totalActions: { $sum: 1 },
-            successfulActions: { $sum: { $cond: ['$success', 1, 0] } },
-            failedActions: { $sum: { $cond: ['$success', 0, 1] } },
+            successfulActions: { $sum: { $cond: [{ $or: [{ $eq: ['$success', true] }, { $in: ['$status', ['SUCCESS', 'INFO']] }] }, 1, 0] } },
+            failedActions: { $sum: { $cond: [{ $or: [{ $eq: ['$success', false] }, { $in: ['$status', ['FAILURE', 'WARNING']] }] }, 1, 0] } },
             avgDuration: { $avg: '$duration' }
           }
         }
@@ -127,22 +138,21 @@ router.get('/stats',
           $group: {
             _id: '$action',
             count: { $sum: 1 },
-            successCount: { $sum: { $cond: ['$success', 1, 0] } },
+            successCount: { $sum: { $cond: [{ $or: [{ $eq: ['$success', true] }, { $in: ['$status', ['SUCCESS', 'INFO']] }] }, 1, 0] } },
             avgDuration: { $avg: '$duration' }
           }
         },
         { $sort: { count: -1 } },
         { $limit: 10 }
-      ]);
-
-      // Users activity
-      const userStats = await AuditLog.aggregate([
+      ]);      const userStats = await AuditLog.aggregate([
         { $match: dateFilter },
         {
           $group: {
-            _id: '$userId',
+            _id: { 
+              $cond: [{ $ifNull: ['$user.userId', false] }, '$user.userId', '$userId'] 
+            },
             actionCount: { $sum: 1 },
-            lastActivity: { $max: '$createdAt' }
+            lastActivity: { $max: { $ifNull: ['$timestamp', '$createdAt'] } }
           }
         },
         {
@@ -153,32 +163,30 @@ router.get('/stats',
             as: 'user'
           }
         },
-        { $unwind: '$user' },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
         {
           $project: {
-            username: '$user.username',
-            full_name: '$user.full_name',
-            role: '$user.role',
+            username: { $ifNull: ['$user.username', 'System'] },
+            full_name: { $ifNull: ['$user.full_name', 'System'] },
+            role: { $ifNull: ['$user.role', 'System'] },
             actionCount: 1,
             lastActivity: 1
           }
         },
         { $sort: { actionCount: -1 } },
         { $limit: 10 }
-      ]);
-
-      // Daily activity
+      ]);      // Daily activity
       const dailyStats = await AuditLog.aggregate([
         { $match: dateFilter },
         {
           $group: {
             _id: {
-              year: { $year: '$createdAt' },
-              month: { $month: '$createdAt' },
-              day: { $dayOfMonth: '$createdAt' }
+              year: { $year: { $ifNull: ['$timestamp', '$createdAt'] } },
+              month: { $month: { $ifNull: ['$timestamp', '$createdAt'] } },
+              day: { $dayOfMonth: { $ifNull: ['$timestamp', '$createdAt'] } }
             },
             totalActions: { $sum: 1 },
-            successfulActions: { $sum: { $cond: ['$success', 1, 0] } }
+            successfulActions: { $sum: { $cond: [{ $or: [{ $eq: ['$success', true] }, { $in: ['$status', ['SUCCESS', 'INFO']] }] }, 1, 0] } }
           }
         },
         { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
@@ -233,16 +241,25 @@ router.get('/user/:userId',
       const { userId } = req.params;
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
-
-      const logs = await AuditLog.find({ userId })
+      const skip = (page - 1) * limit;      const logs = await AuditLog.find({ 
+        $or: [
+          { userId },
+          { 'user.userId': userId }
+        ]
+      })
         .populate('userId', 'username full_name email role')
-        .sort({ createdAt: -1 })
+        .populate('user.userId', 'username full_name email role')
+        .sort({ createdAt: -1, timestamp: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
 
-      const total = await AuditLog.countDocuments({ userId });
+      const total = await AuditLog.countDocuments({ 
+        $or: [
+          { userId },
+          { 'user.userId': userId }
+        ]
+      });
 
       res.json({
         success: true,
@@ -286,12 +303,26 @@ router.delete('/cleanup',
         });
       }
 
-      const { days } = req.query;
-      const cutoffDate = new Date();
+      const { days } = req.query;      const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - parseInt(days));
 
       const result = await AuditLog.deleteMany({
-        createdAt: { $lt: cutoffDate }
+        $or: [
+          { createdAt: { $lt: cutoffDate } },
+          { timestamp: { $lt: cutoffDate } }
+        ]
+      });
+      
+      // Log the cleanup activity
+      await auditLogger.logSystem({
+        action: 'DELETE',
+        resourceType: 'SYSTEM',
+        description: `Deleted ${result.deletedCount} audit logs older than ${days} days`,
+        details: {
+          deletedCount: result.deletedCount,
+          retentionPolicy: `${days} days`,
+          executionTime: new Date().toISOString()
+        }
       });
 
       res.json({

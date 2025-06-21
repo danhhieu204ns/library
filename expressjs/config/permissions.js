@@ -43,10 +43,11 @@ const PERMISSIONS = {
   // Report permissions
   REPORTS_VIEW: 'reports:view',
   REPORTS_EXPORT: 'reports:export',
-  
-  // System permissions
+    // System permissions
   SYSTEM_SETTINGS: 'system:settings',
-  AUDIT_LOGS: 'system:audit_logs'
+  AUDIT_LOGS: 'system:audit_logs',
+  AUDIT_LOGS_EXPORT: 'system:export_audit_logs',
+  AUDIT_LOGS_CLEANUP: 'system:cleanup_audit_logs'
 };
 
 // Role-based permission mapping
