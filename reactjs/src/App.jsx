@@ -12,6 +12,7 @@ import BooksPage from './pages/books/BooksPage';
 import BookDetailPage from './pages/books/BookDetailPage';
 import ThemeSelector from './components/ThemeSelector';
 import FinalScheduleView from './components/schedule/FinalScheduleView';
+import { ProfilePage } from './pages/profile';
 
 // Dashboard Layouts
 import AdminDashboardLayout from './layouts/AdminDashboardLayout';
@@ -63,6 +64,11 @@ function App() {  return (
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:id" element={<BookDetailPage />} />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
           
           {/* Admin Dashboard Routes */}
           <Route path="/admin" element={
