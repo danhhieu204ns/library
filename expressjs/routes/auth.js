@@ -1,11 +1,11 @@
 const express = require('express');
+const { body, validationResult, query } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
 const { User } = require('../models/User');
 const { auth } = require('../middleware/auth');
-const { getPermissionsForRole, getFrontendRole } = require('../config/permissions');
-const { auditAuth } = require('../middleware/auditLog');
+const { auditAuth, auditLog } = require('../middleware/auditLog');
+const { PERMISSIONS, getPermissionsForRole, getFrontendRole } = require('../config/permissions');
 const router = express.Router();
 
 // Get user permissions
@@ -90,13 +90,12 @@ router.post('/register', [
   body('email')
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail(),
-  body('full_name')
+    .normalizeEmail(),  body('full_name')
     .notEmpty()
     .withMessage('Full name is required')
     .isLength({ max: 255 })
     .withMessage('Full name cannot exceed 255 characters')
-], auditAuth('REGISTER'), async (req, res) => {
+], async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -179,7 +178,7 @@ router.post('/register', [
 router.post('/login', [
   body('username').notEmpty().withMessage('Username is required'),
   body('password').notEmpty().withMessage('Password is required')
-], auditAuth('LOGIN'), async (req, res) => {
+], async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -307,6 +306,64 @@ router.get('/verify', async (req, res) => {
     res.status(401).json({
       success: false,
       message: 'Invalid token'
+    });
+  }
+});
+
+// Change password route
+router.post('/change-password', auth, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters long')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation errors',
+        errors: errors.array()
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    
+    // Get user with password
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    user.password_hash = newPasswordHash;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
     });
   }
 });

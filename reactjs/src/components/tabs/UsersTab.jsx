@@ -11,9 +11,8 @@ const UsersTab = ({
 }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({
-    name: '',
+  const [showEditModal, setShowEditModal] = useState(false);  const [editForm, setEditForm] = useState({
+    full_name: '',
     email: '',
     role: '',
     status: ''
@@ -23,7 +22,7 @@ const UsersTab = ({
   const handleEditClick = (user) => {
     setSelectedUser(user);
     setEditForm({
-      name: user.name || '',
+      full_name: user.full_name || user.name || '',
       email: user.email || '',
       role: user.role || 'User',
       status: user.status || 'Active'
@@ -60,9 +59,9 @@ const UsersTab = ({
       </div>
     );
   }
-
   // Filter users based on search
   const filteredUsers = users.filter(user =>
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.role?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -131,9 +130,8 @@ const UsersTab = ({
                           <Users className="h-6 w-6 text-gray-500" />
                         )}
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.name}
+                      <div className="ml-4">                        <div className="text-sm font-medium text-gray-900">
+                          {user.full_name || user.name}
                         </div>
                       </div>
                     </div>
@@ -230,13 +228,12 @@ const UsersTab = ({
             <h3 className="text-lg font-medium text-gray-900 mb-4">Chỉnh sửa thông tin người dùng</h3>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tên người dùng</label>
+              <div>                <label className="block text-sm font-medium text-gray-700 mb-1">Tên người dùng</label>
                 <input
                   type="text"
                   className="shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border border-gray-300 rounded-md p-2"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  value={editForm.full_name}
+                  onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
                 />
               </div>
               

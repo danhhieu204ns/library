@@ -165,6 +165,17 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'SET_USER', payload: updatedUser });
   };
 
+  // Change password
+  const changePassword = async (passwordData) => {
+    try {
+      const response = await authAPI.changePassword(passwordData);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to change password';
+      return { success: false, error: errorMessage };
+    }
+  };
+
   // Clear error
   const clearError = () => {
     dispatch({ type: 'CLEAR_ERROR' });
@@ -176,6 +187,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
+    changePassword,
     clearError,
   };
 
