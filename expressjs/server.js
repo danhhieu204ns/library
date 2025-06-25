@@ -35,6 +35,10 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Add audit logging middleware
+const { autoAuditLogger } = require('./middleware/auditLog');
+app.use(autoAuditLogger);
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/community_library')
 .then(() => {
@@ -59,23 +63,24 @@ app.use('/api/user-roles', require('./routes/userRoles'));
 app.use('/api/shift-requests', require('./routes/shiftRequests'));
 app.use('/api/schedule', require('./routes/schedule'));
 app.use('/api/audit-logs', require('./routes/auditLogs'));
+app.use('/api/import', require('./routes/import')); // Chức năng import sách từ Excel
 
 // API Documentation endpoint
-app.get('/api/docs', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Yen Library API v1.0',      endpoints: {
+app.get('/api/docs', (req, res) => {  res.json({    success: true,
+    message: 'Yen Library API v1.0',
+    endpoints: {
       auth: '/api/auth',
       users: '/api/users',
       books: '/api/books',
       borrowings: '/api/borrowings',
       reservations: '/api/reservations',
-      schedules: '/api/schedules',
+      schedules: '/api/schedules',      
       reviews: '/api/reviews',
       admin: '/api/admin',
       upload: '/api/upload',
       roles: '/api/roles',
-      userRoles: '/api/user-roles'
+      userRoles: '/api/user-roles',
+      import: '/api/import'
     },
     documentation: 'See README.md for detailed API documentation'
   });

@@ -28,7 +28,10 @@ const auditLogSchema = new mongoose.Schema({
   action: {
     type: String,
     required: true,
-    enum: ['CREATE', 'READ', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'ADMIN_ACTION', 'BORROW', 'RETURN', 'RESERVE', 'CANCEL_RESERVATION', 'UPLOAD', 'SHIFT_REQUEST', 'ROLE_CHANGE', 'PERMISSION_CHANGE', 'OTHER']
+    enum: [
+      'CREATE', 'READ', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'ADMIN_ACTION', 'BORROW', 'RETURN', 'RESERVE', 'CANCEL_RESERVATION', 'UPLOAD', 'SHIFT_REQUEST', 'ROLE_CHANGE', 'PERMISSION_CHANGE', 'OTHER',
+      'VIEW_USERS', 'IMPORT_BOOKS' // Thêm các action đặc thù
+    ]
   },
   // Backwards compatibility
   resource: {

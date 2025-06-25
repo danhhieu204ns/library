@@ -252,9 +252,192 @@ const auditLogger = {
   }
 };
 
+// Danh sách các public endpoints không cần ghi log
+const PUBLIC_ENDPOINTS = [
+  { path: '/api/health', method: 'GET' },
+  { path: '/api/docs', method: 'GET' },
+  { path: '/api/auth/login', method: 'POST' },
+  { path: '/api/auth/register', method: 'POST' },
+  { path: '/api/auth/forgot-password', method: 'POST' },
+  { path: '/api/auth/reset-password', method: 'POST' },
+  { path: '/api/books', method: 'GET', exactMatch: false },
+  { path: '/api/reviews', method: 'GET', exactMatch: false }
+];
+
+// Kiểm tra xem endpoint có là public không
+const isPublicEndpoint = (path, method) => {
+  return PUBLIC_ENDPOINTS.some(endpoint => {
+    // Kiểm tra endpoint chính xác
+    if (endpoint.exactMatch !== false && endpoint.path === path && endpoint.method === method) {
+      return true;
+    }
+    
+    // Kiểm tra endpoint bắt đầu bằng path
+    if (endpoint.exactMatch === false && 
+        path.startsWith(endpoint.path) && 
+        endpoint.method === method) {
+      return true;
+    }
+    
+    return false;
+  });
+};
+
+// Xác định loại resource từ URL
+const getResourceTypeFromPath = (path) => {
+  const pathParts = path.split('/').filter(part => part);
+  
+  if (pathParts.length < 2) return 'SYSTEM';
+  
+  const resourceMap = {
+    'users': 'USER',
+    'books': 'BOOK',
+    'borrowings': 'BORROWING',
+    'reservations': 'RESERVATION',
+    'schedules': 'SCHEDULE',
+    'schedule': 'SCHEDULE',
+    'reviews': 'REVIEW',
+    'roles': 'ROLE',
+    'user-roles': 'ROLE',
+    'shift-requests': 'SHIFT_REQUEST',
+    'upload': 'FILE',
+    'import': 'BOOK',
+    'auth': 'USER',
+    'admin': 'SYSTEM',
+    'audit-logs': 'SYSTEM'
+  };
+  
+  // Kiểm tra resourceType cho các endpoint đặc biệt
+  if (pathParts[1] === 'auth') {
+    if (pathParts[2] === 'login' || pathParts[2] === 'register' || 
+        pathParts[2] === 'forgot-password' || pathParts[2] === 'reset-password') {
+      return 'USER';
+    }
+  }
+  
+  return resourceMap[pathParts[1]] || 'OTHER';
+};
+
+// Xác định action từ method
+const getActionFromMethod = (method, path) => {
+  // Xử lý các trường hợp đặc biệt
+  if (path.includes('/auth/login')) return 'LOGIN';
+  if (path.includes('/auth/logout')) return 'LOGOUT';
+  if (path.includes('/admin')) return 'ADMIN_ACTION';
+  if (path.includes('/import')) return 'IMPORT_BOOKS';
+  if (path.includes('/borrowings') && method === 'POST') return 'BORROW';
+  if (path.includes('/borrowings') && method === 'PUT' && path.includes('/return')) return 'RETURN';
+  if (path.includes('/reservations') && method === 'POST') return 'RESERVE';
+  if (path.includes('/reservations') && method === 'DELETE') return 'CANCEL_RESERVATION';
+  
+  // Xử lý các trường hợp thông thường
+  switch (method) {
+    case 'GET': return 'READ';
+    case 'POST': return 'CREATE';
+    case 'PUT':
+    case 'PATCH': return 'UPDATE';
+    case 'DELETE': return 'DELETE';
+    default: return 'OTHER';
+  }
+};
+
+// Middleware để tự động ghi log cho tất cả các API requests
+const autoAuditLogger = (req, res, next) => {
+  // Bỏ qua public endpoints
+  if (isPublicEndpoint(req.originalUrl, req.method)) {
+    return next();
+  }
+  
+  const startTime = Date.now();
+  
+  // Lưu lại responseBody
+  const originalJson = res.json;
+  let responseData;
+  
+  res.json = function(data) {
+    responseData = data;
+    const result = originalJson.call(this, data);
+    
+    // Thực hiện ghi log sau khi response đã được gửi
+    const duration = Date.now() - startTime;
+    const success = res.statusCode < 400 && (data?.success !== false);
+    const status = success ? 'SUCCESS' : 'FAILURE';
+    
+    // Xác định resource type và action
+    const resourceType = getResourceTypeFromPath(req.originalUrl);
+    const action = getActionFromMethod(req.method, req.originalUrl);
+    
+    // Lấy ID của resource (nếu có)
+    let resourceId = req.params?.id || null;
+    
+    // Lọc thông tin nhạy cảm từ requestBody
+    let requestData = null;
+    if (!['GET', 'DELETE'].includes(req.method) && req.body) {
+      requestData = { ...req.body };
+      
+      // Xóa các trường nhạy cảm
+      if (requestData.password) requestData.password = '[REDACTED]';
+      if (requestData.currentPassword) requestData.currentPassword = '[REDACTED]';
+      if (requestData.newPassword) requestData.newPassword = '[REDACTED]';
+      if (requestData.token) requestData.token = '[REDACTED]';
+    } else {
+      requestData = req.query;
+    }
+    
+    // Tạo log entry
+    const logData = {
+      // Legacy fields
+      userId: req.user?._id,
+      userRole: req.user?.role,
+      // New format
+      user: req.user ? {
+        userId: req.user._id,
+        username: req.user.username,
+        email: req.user.email,
+        role: req.user.role
+      } : null,
+      action: action,
+      // Legacy field
+      resource: resourceType,
+      // New field
+      resourceType: resourceType,
+      resourceId: resourceId,
+      method: req.method,
+      endpoint: req.originalUrl,
+      description: `${action} ${resourceType}${resourceId ? ` ID: ${resourceId}` : ''}`,
+      details: {
+        path: req.path,
+        query: req.query,
+        params: req.params
+      },
+      success: success,
+      status: status,
+      statusCode: res.statusCode,
+      ip: req.ip || req.connection.remoteAddress,
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent') || '',
+      requestData: requestData,
+      responseMessage: responseData?.message || '',
+      error: success ? null : (responseData?.error || responseData?.message),
+      duration: duration,
+      timestamp: new Date()
+    };
+    
+    // Lưu log vào database (async, không block response)
+    saveAuditLog(logData).catch(err => {
+      console.error('Failed to save auto audit log:', err);
+    });
+    
+    return result;
+  };
+  
+  next();
+};
+
 module.exports = {
   auditLog,
   auditAuth,
   saveAuditLog,
-  auditLogger
+  auditLogger,
+  autoAuditLogger
 };
