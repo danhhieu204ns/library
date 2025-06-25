@@ -287,7 +287,7 @@ router.get('/user/:userId',
 // Delete old audit logs (Admin only, for cleanup)
 router.delete('/cleanup', 
   auth, 
-  requirePermission(PERMISSIONS.AUDIT_LOGS),
+  requirePermission(PERMISSIONS.AUDIT_LOGS_CLEANUP),
   [
     query('days').isInt({ min: 1 }).withMessage('Days must be a positive integer')
   ],

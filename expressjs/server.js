@@ -35,6 +35,10 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Add audit logging middleware
+const { autoAuditLogger } = require('./middleware/auditLog');
+app.use(autoAuditLogger);
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/community_library')
 .then(() => {
